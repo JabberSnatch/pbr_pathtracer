@@ -1,0 +1,11 @@
+Build/*
+Intermediate/*
+*.png
+*.db
+*.opendb
+*.userpref
+.vs/*
+*.user
+*.png
+Book1_Final
+*.swp
