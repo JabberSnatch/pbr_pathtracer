@@ -1,9 +1,8 @@
-#include "vld.h"
-
 #include <iostream>
 #include <fstream>
 #include <limits>
 #include <ctime>
+#include <chrono>
 #include <iomanip>
 #include <sstream>
 #include <memory>
@@ -22,6 +21,7 @@
 #include "dielectric.hpp"
 #include "moving_sphere.hpp"
 #include "bvh_node.hpp"
+#include "lifetime_spreader.hpp"
 
 
 
@@ -41,44 +41,55 @@ hit_sphere(const vec3& _center, float _radius, const ray& _r)
 
 
 void
-add_random_spheres(hitable_list& _scene, int _count, const vec3& _bounds)
+add_random_spheres(hitable_list& _scene, int _count, const vec3& _bounds, 
+				   lifetime_spreader<hitable>& _hitable_spreader,
+				   lifetime_spreader<material>& _material_spreader)
 {
 	for (int i = 0; i < _count; ++i)
 	{
-		float material = random::sample();
+		float material_pick = random::sample();
 		vec3 position{(random::ninja() * 2.f - vec3::one()) * _bounds + vec3{.0f, .2f, .0f}};
 		
-		if (material < .8f)
+		if (material_pick < .8f)
 		{
-			_scene.list.push_back(std::shared_ptr<hitable>{
+			_scene.list.push_back(std::ref(_hitable_spreader.add_object<hitable>(
 				new sphere{ position,
 						   .2f,
-						   new lambertian{random::ninja() * random::ninja()}}});
+						   _material_spreader.add_object<lambertian>(
+							   new lambertian{random::ninja() * random::ninja()})
+				}
+			)));
 		}
-		else if (material < .95f)
+		else if (material_pick < .95f)
 		{
-			_scene.list.push_back(std::shared_ptr<hitable>{
+			_scene.list.push_back(std::ref(_hitable_spreader.add_object<hitable>(
 				new sphere{ position,
-							.2f,
-							new metal{(random::ninja() + vec3::one()) * .5f, 
-									   random::sample() * .5f}}});
+						   .2f,
+						   _material_spreader.add_object<metal>( 
+							   new metal{(random::ninja() + vec3::one()) * .5f,
+										 random::sample() * .5f})
+				}
+			)));
 		}
 		else
 		{
-			_scene.list.push_back(std::shared_ptr<hitable>{
+			_scene.list.push_back(std::ref(_hitable_spreader.add_object<hitable>(
 				new sphere{ position,
-							.2f,
-							new dielectric{1.5f}}});
+						   .2f,
+						   _material_spreader.add_object<dielectric>(
+							   new dielectric{1.5f})
+				}
+			)));
 		}
 	}
 }
 
 
 vec3
-color(const ray& _r, hitable* _world, int _depth)
+color(const ray& _r, hitable& _world, int _depth)
 {
 	hit_record record;
-	if (_world->hit(_r, 0.001f, std::numeric_limits<float>::max(), record))
+	if (_world.hit(_r, 0.001f, std::numeric_limits<float>::max(), record))
 	{
 		ray scattered;
 		vec3 attenuation;
@@ -102,55 +113,70 @@ color(const ray& _r, hitable* _world, int _depth)
 int 
 main()
 {
-	const int image_width = 320;
-	const int image_height = 180;
-	const int sample_count = 1;
+	const int image_width = 640;
+	const int image_height = 360;
+	const int sample_count = 100;
 
-	std::shared_ptr<hitable_list> world{new hitable_list{}};
+	lifetime_spreader<hitable> hitable_spreader{};
+	lifetime_spreader<material> material_spreader{};
+
+	hitable_list& world{hitable_spreader.add_object<hitable_list>(new hitable_list{})};
 #if 1
-	world->list.push_back(std::shared_ptr<hitable>{
-						  new sphere{ 
-								vec3{0.f, 0.5f, -2.5f}, 
-								.5f, 
-								new metal{vec3{1.f, 1.f, 1.f}, 0.f}}});
-	world->list.push_back(std::shared_ptr<hitable>{
-						  new sphere{ 
-								vec3{0.f, 0.5f, .5f}, 
-								.5f, 
-								new metal{vec3{1.f, 1.f, 1.f}, 0.f}}});
-								//new lambertian{vec3{.8f, .3f, .3f}}});
-	world->list.push_back(std::shared_ptr<hitable>{
-						  new sphere{ 
-								vec3{0.f, -1000.f, -1.f},
-								1000.f,
-								new lambertian{vec3{.8f, .8f, .0f}}}});
-	world->list.push_back(std::shared_ptr<hitable>{
-						  new sphere{
-								vec3{1.1f, 0.5f, -1.f},
-								.5f,
-								//new metal{vec3{.8f, .6f, .2f}, 0.7f}});
-								new dielectric{1.5f}}});
-	world->list.push_back(std::shared_ptr<hitable>{
-						  new sphere{
-								vec3{1.1f, 0.5f, -1.f},
-								-.49f,
-								//new metal{vec3{.8f, .6f, .2f}, 0.7f}});
-								new dielectric{1.5f}}});
-	world->list.push_back(std::shared_ptr<hitable>{
-						  new sphere{
-								vec3{-1.1f, 0.5f, -1.f},
-								.5f,
-								new metal{vec3{.6f, .8f, .8f}, 0.3f}}});
-	world->list.push_back(std::shared_ptr<hitable>{
-						  new moving_sphere{
-								vec3{0.f, .5f, -1.f}, vec3{0.f, 1.f, -1.f},
-								.0f, 1.f,
-								.5f,
-								new lambertian{vec3{.980f, .854f, .368f}}}});
+	world.list.push_back(std::ref(hitable_spreader.add_object<hitable>(
+		new sphere{vec3{0.f, .5f, -2.5f},
+				   .5f,
+				   material_spreader.add_object<material>(
+					   new metal{vec3{1.f, 1.f, 1.f}, .0f})
+		}
+	)));
+	world.list.push_back(std::ref(hitable_spreader.add_object<hitable>(
+		new sphere{vec3{0.f, 0.5f, .5f},
+				   .5f,
+				   material_spreader.add_object<material>(
+					   new metal{vec3{1.f, 1.f, 1.f}, 0.f})
+		}
+	)));
+	world.list.push_back(std::ref(hitable_spreader.add_object<hitable>(
+		new sphere{vec3{.0f, -1000.f, -1.f},
+				   1000.f,
+				   material_spreader.add_object<material>(
+					   new lambertian{vec3{.8f, .8f, .0f}})
+		}
+	)));
+	world.list.push_back(std::ref(hitable_spreader.add_object<hitable>(
+		new sphere{vec3{1.1f, 0.5f, -1.f},
+				   .5f,
+				   material_spreader.add_object<material>(
+					   new dielectric{1.5f})
+		}
+	)));
+	world.list.push_back(std::ref(hitable_spreader.add_object<hitable>(
+		new sphere{vec3{1.1f, 0.5f, -1.f},
+				   -.49f,
+				   material_spreader.add_object<material>(
+					   new dielectric{1.5f})
+		}
+	)));
+	world.list.push_back(std::ref(hitable_spreader.add_object<hitable>(
+		new sphere{vec3{-1.1f, 0.5f, -1.f},
+				   .5f,
+				   material_spreader.add_object<material>(
+					   new metal{vec3{.6f, .8f, .8f}, 0.3f})
+		}
+	)));
+	world.list.push_back(std::ref(hitable_spreader.add_object<hitable>(
+		new moving_sphere{vec3{0.f, .5f, -1.f}, vec3{0.f, 1.f, -1.f},
+						  .0f, 1.f,
+						   .5f,
+						   material_spreader.add_object<material>(
+							   new lambertian{vec3{.980f, .854f, .368f}})
+		}
+	)));
+	
+	add_random_spheres(world, 100, vec3{10.f, 0.f, 10.f},
+					   hitable_spreader, material_spreader);
 
-	add_random_spheres(*world, 100, vec3{10.f, 0.f, 10.f});
-
-	bvh_node bvh_world{world->list, 0.f, 1.f};
+	bvh_node bvh_world{world.list, 0.f, 1.f, hitable_spreader};
 
 	//camera main_camera{ origin, lower_left_corner, horizontal, vertical };
 	vec3 view_position{2.f, .4f, -1.3f};
@@ -174,6 +200,8 @@ main()
 	camera main_camera{90.f, float(image_width) / float(image_height)};
 #endif
 
+	auto begin = std::chrono::system_clock::now();
+
 	unsigned char* pixels = new unsigned char[image_height * image_width * 3]{};
 	unsigned char* head = pixels;
 	for (int j = image_height - 1; j >= 0; j--)
@@ -188,7 +216,7 @@ main()
 
 				ray r{main_camera.get_ray(u, v)};
 
-				col += color(r, &bvh_world, 0);
+				col += color(r, bvh_world, 0);
 			}
 
 			col /= float(sample_count);
@@ -208,6 +236,10 @@ main()
 		std::cout << "Row " << j << " done" << std::endl;
 	}
 
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed = end - begin;
+
+	std::cout << "Elapsed time : " << elapsed.count() << std::endl;
 
 	std::stringstream ss{};
 	std::time_t now = std::time(nullptr);
@@ -218,4 +250,7 @@ main()
 				   image_width, image_height, 3, pixels, image_width * 3);
 
 	delete[] pixels;
+
+	std::string buf{};
+	std::cin >> buf;
 }

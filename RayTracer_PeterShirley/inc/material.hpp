@@ -6,6 +6,7 @@
 
 struct material
 {
+	virtual ~material() = default;
 	virtual bool scatter(const ray& _rayIn, 
 						 const hit_record& _record, 
 						 vec3& _attenuation, 

@@ -9,9 +9,9 @@ struct moving_sphere : public hitable
 	moving_sphere() = default;
 	moving_sphere(const vec3& _cen0, const vec3& _cen1,
 				  float _t0, float _t1, float _radius,
-				  material* _pMaterial)
+				  material& _rMaterial)
 		:center0{_cen0}, center1{_cen1}, time0{_t0}, time1{_t1}, 
-		 radius{_radius}, p_material{_pMaterial}
+		 radius{_radius}, r_material{_rMaterial}
 	{}
 
 	vec3 center(float _time) const {
@@ -24,7 +24,7 @@ struct moving_sphere : public hitable
 	vec3 center0, center1;
 	float time0, time1;
 	float radius;
-	std::shared_ptr<material> p_material;
+	material& r_material;
 };
 
 
@@ -44,7 +44,7 @@ moving_sphere::hit(const ray& _r, float _tMin, float _tMax, hit_record& _record)
 			_record.t = root;
 			_record.p = _r.point_at_parameter(root);
 			_record.normal = (_record.p - center(_r.time)) / radius;
-			_record.p_material = p_material;
+			_record.p_material = &r_material;
 			return true;
 		}
 		root = (-b + sqrt(discriminant)) / a;
@@ -53,7 +53,7 @@ moving_sphere::hit(const ray& _r, float _tMin, float _tMax, hit_record& _record)
 			_record.t = root;
 			_record.p = _r.point_at_parameter(root);
 			_record.normal = (_record.p - center(_r.time)) / radius;
-			_record.p_material = p_material;
+			_record.p_material = &r_material;
 			return true;
 		}
 	}
