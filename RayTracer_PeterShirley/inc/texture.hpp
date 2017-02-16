@@ -6,6 +6,7 @@
 
 struct texture
 {
+	virtual ~texture() = default;
 	virtual vec3 value(float _u, float _v, const vec3& _position) const = 0;
 };
 

@@ -32,6 +32,28 @@ struct random
 		return direction;
 	}
 
+	static vec3 on_unit_sphere()
+	{
+		float phi = 2.f * 3.1415926545f * sample();
+		float cos_theta = 1.f - 2.f * sample();
+		float x = cos(phi) * sqrt(1.f - cos_theta*cos_theta);
+		float y = sin(phi) * sqrt(1.f - cos_theta*cos_theta);
+		float z = cos_theta;
+
+		return vec3{x, y, z};
+	}
+
+	static vec3 cosine_direction()
+	{
+		float r1 = sample();
+		float r2 = sample();
+		float z = sqrt(1 - r2);
+		float phi = 2.f * 3.1415926535f * r1;
+		float x = cos(phi)*2.f*sqrt(r2);
+		float y = sin(phi)*2.f*sqrt(r2);
+		return vec3{x, y, z};
+	}
+
 	static vec3 in_unit_disk()
 	{
 		vec3 point{ vec3::one() };
@@ -41,6 +63,18 @@ struct random
 		}
 		return point;
 	}
+
+	static inline vec3 to_sphere(float _radius, float _distanceSquared)
+	{
+		float r1 = sample();
+		float r2 = sample();
+		float z = 1.f + r2*(sqrt(1.f - _radius*_radius / _distanceSquared) - 1.f);
+		float phi = 2.f * 3.1415926535f * r1;
+		float x = cos(phi) * sqrt(1.f - z*z);
+		float y = sin(phi) * sqrt(1.f - z*z);
+		return vec3{x, y, z};
+	}
+
 
 	static std::random_device rd;
 	static std::mt19937 random_generator;

@@ -14,6 +14,8 @@ struct hitable_list : public hitable
 	{}
 	bool hit(const ray& _r, float _tMin, float _tMax, hit_record& _rec) const override;
 	bool bounding_box(float _t0, float _t1, aabb& _box) const override;
+	float pdf_value(const vec3& _origin, const vec3& _v) const override;
+	vec3 random(const vec3& _origin) const override;
 
 	std::vector<std::reference_wrapper<hitable>> list;
 };
@@ -59,6 +61,27 @@ hitable_list::bounding_box(float _t0, float _t1, aabb& _box) const
 	}
 
 	return true;
+}
+
+
+float
+hitable_list::pdf_value(const vec3& _origin, const vec3& _v) const
+{
+	float weight = 1.f / list.size();
+	float sum = 0.f;
+	for (hitable& element : list)
+		sum += weight * element.pdf_value(_origin, _v);
+
+	return sum;
+}
+
+
+vec3
+hitable_list::random(const vec3& _origin) const
+{
+	int index = int(random::sample() * list.size());
+	index = index >= list.size() ? int(list.size() - 1) : index;
+	return list[index].get().random(_origin);
 }
 
 

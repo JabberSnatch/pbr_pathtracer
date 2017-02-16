@@ -6,7 +6,8 @@
 
 struct moving_sphere : public hitable
 {
-	moving_sphere() = default;
+	moving_sphere() = delete;
+	~moving_sphere() = default;
 	moving_sphere(const vec3& _cen0, const vec3& _cen1,
 				  float _t0, float _t1, float _radius,
 				  material& _rMaterial)
@@ -20,6 +21,15 @@ struct moving_sphere : public hitable
 
 	bool hit(const ray& _r, float _tMin, float _tMax, hit_record& _record) const override;
 	bool bounding_box(float _t0, float _t1, aabb& _box) const override;
+
+	void get_uv(const vec3& _dir, float& _u, float& _v) const
+	{
+		float phi = atan2(_dir.z(), _dir.x());
+		float theta = asin(-_dir.y());
+		constexpr float pi = 3.1415926535f;
+		_u = 1.f - (phi + pi) / (2.f * pi);
+		_v = (theta + pi / 2.f) / pi;
+	}
 
 	vec3 center0, center1;
 	float time0, time1;
@@ -45,6 +55,7 @@ moving_sphere::hit(const ray& _r, float _tMin, float _tMax, hit_record& _record)
 			_record.p = _r.point_at_parameter(root);
 			_record.normal = (_record.p - center(_r.time)) / radius;
 			_record.p_material = &r_material;
+			get_uv(_record.normal, _record.u, _record.v);
 			return true;
 		}
 		root = (-b + sqrt(discriminant)) / a;
@@ -54,6 +65,7 @@ moving_sphere::hit(const ray& _r, float _tMin, float _tMax, hit_record& _record)
 			_record.p = _r.point_at_parameter(root);
 			_record.normal = (_record.p - center(_r.time)) / radius;
 			_record.p_material = &r_material;
+			get_uv(_record.normal, _record.u, _record.v);
 			return true;
 		}
 	}

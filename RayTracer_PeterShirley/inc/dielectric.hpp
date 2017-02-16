@@ -12,28 +12,27 @@ struct dielectric : public material
 	{}
 
 	bool scatter(const ray& _rayIn, 
-				 const hit_record& _record, 
-				 vec3& _attenuation, 
-				 ray& _rayOut) const override
+				 const hit_record& _hrecord,
+				 scatter_record& _srecord) const override
 	{
 		vec3 outward_normal, refracted;
-		vec3 reflected{reflect(_rayIn.direction(), _record.normal)};
+		vec3 reflected{reflect(_rayIn.direction(), _hrecord.normal)};
 		float reflect_probability;
 		float cosine;
 		float ni_over_nt;
-		_attenuation = vec3(1.f, 1.f, 1.f);
+		_srecord.attenuation = vec3(1.f, 1.f, 1.f);
 		
-		if (dot(_rayIn.direction(), _record.normal) > 0)
+		if (dot(_rayIn.direction(), _hrecord.normal) > 0)
 		{
-			outward_normal = -_record.normal;
+			outward_normal = -_hrecord.normal;
 			ni_over_nt = refraction_index;
-			cosine = refraction_index * dot(_rayIn.direction(), _record.normal) / _rayIn.direction().length();
+			cosine = refraction_index * dot(_rayIn.direction(), _hrecord.normal) / _rayIn.direction().length();
 		}
 		else
 		{
-			outward_normal = _record.normal;
+			outward_normal = _hrecord.normal;
 			ni_over_nt = 1.f / refraction_index;
-			cosine = -dot(_rayIn.direction(), _record.normal) / _rayIn.direction().length();
+			cosine = -dot(_rayIn.direction(), _hrecord.normal) / _rayIn.direction().length();
 		}
 
 		if (refract(_rayIn.direction(), outward_normal, ni_over_nt, refracted))
@@ -42,9 +41,12 @@ struct dielectric : public material
 			reflect_probability = 1.0f;
 
 		if (random::sample() < reflect_probability)
-			_rayOut = ray{_record.p, reflected, _rayIn.time};
+			_srecord.specular_ray = ray{_hrecord.p, reflected, _rayIn.time};
 		else
-			_rayOut = ray{_record.p, refracted, _rayIn.time};
+			_srecord.specular_ray = ray{_hrecord.p, refracted, _rayIn.time};
+
+		_srecord.is_specular = true;
+		_srecord.p_pdf = nullptr;
 
 		return true;
 	}

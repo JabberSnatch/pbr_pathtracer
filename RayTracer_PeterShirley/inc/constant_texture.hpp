@@ -1,5 +1,5 @@
-#ifndef __YS_TEXTURE_HPP__
-#define __YS_TEXTURE_HPP__
+#ifndef __YS_CONSTANT_TEXTURE_HPP__
+#define __YS_CONSTANT_TEXTURE_HPP__
 
 #include "texture.hpp"
 
@@ -20,4 +20,4 @@ struct constant_texture : public texture
 };
 
 
-#endif // __YS_TEXTURE_HPP__
+#endif // __YS_CONSTANT_TEXTURE_HPP__

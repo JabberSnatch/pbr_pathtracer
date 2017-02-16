@@ -6,23 +6,26 @@
 
 struct metal : public material
 {
-	metal() = delete;
+	metal() = default;
 	metal(const vec3& _albedo, float _fuzziness)
 		:albedo{_albedo}, fuzziness{_fuzziness}
 	{}
 
 	bool scatter(const ray& _rayIn,
-				 const hit_record& _record,
-				 vec3& _attenuation,
-				 ray& _rayOut) const override
+				 const hit_record& _hrecord,
+				 scatter_record& _srecord) const override
 	{
-		vec3 reflected{reflect(unit_vector(_rayIn.direction()), _record.normal)};
-		//_rayOut = ray{_record.p, -_record.normal};
-		//while (dot(_rayOut.direction(), _record.normal) < 0)
-		_rayOut = ray{_record.p, reflected + fuzziness*random::in_unit_sphere(), _rayIn.time};
-		_attenuation = albedo;
-		//return true;
-		return (dot(_rayOut.direction(), _record.normal) > 0);
+		vec3 reflected{reflect(unit_vector(_rayIn.direction()), _hrecord.normal)};
+		_srecord.is_specular = true;
+		_srecord.specular_ray = ray{
+			_hrecord.p, 
+			reflected + fuzziness*random::in_unit_sphere(), 
+			_rayIn.time
+		};
+		_srecord.attenuation = albedo;
+		_srecord.p_pdf = nullptr;
+		//return (dot(_rayOut.direction(), _record.normal) > 0);
+		return true;
 	}
 
 

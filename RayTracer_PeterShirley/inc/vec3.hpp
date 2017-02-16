@@ -13,6 +13,7 @@ struct vec3
 		:e{ _e0, _e1, _e2 }
 	{}
 
+	static constexpr vec3 zero() { return vec3{ 0.f, 0.f, 0.f }; }
 	static constexpr vec3 one() { return vec3{ 1.f, 1.f, 1.f }; }
 
 	inline float x() const { return e[0]; }
@@ -207,6 +208,17 @@ refract(const vec3& _vector, const vec3& _normal, float _niOverNt, vec3& _refrac
 	}
 	else
 		return false;
+}
+
+
+inline vec3
+de_nan(const vec3& _v)
+{
+	vec3 temp{_v};
+	if (!(temp[0] == temp[0])) temp[0] = .0f;
+	if (!(temp[1] == temp[1])) temp[1] = .0f;
+	if (!(temp[2] == temp[2])) temp[2] = .0f;
+	return temp;
 }
 
 
