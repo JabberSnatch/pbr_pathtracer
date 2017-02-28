@@ -25,7 +25,7 @@ struct hitable
 	virtual bool bounding_box(float _t0, float _t1, aabb& _box) const = 0;
 	virtual float pdf_value(const vec3& _origin, const vec3& _v) const
 	{ return 0.f; }
-	virtual vec3 random(const vec3& _origin) const
+	virtual vec3 to_random_position(const vec3& _origin) const
 	{ return vec3(1.f, 0.f, 0.f); }
 };
 

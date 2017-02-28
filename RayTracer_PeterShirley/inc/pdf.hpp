@@ -2,6 +2,7 @@
 #define __YS_PDF_HPP__
 
 #include "vec3.hpp"
+#include "random.hpp"
 
 
 struct pdf

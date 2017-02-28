@@ -91,6 +91,14 @@ inline float perlin_interp(vec3 _c[2][2][2], float _u, float _v, float _w)
 
 struct perlin
 {
+	static void startup()
+	{
+		perlin::ranvec = generate();
+		perlin::perm_x = generate_perm();
+		perlin::perm_y = generate_perm();
+		perlin::perm_z = generate_perm();
+	}
+
 	// NOTE: This is on the [-1.f, 1.f] range.
 	static float noise(const vec3& _p)
 	{
@@ -126,11 +134,13 @@ struct perlin
 		return fabsf(accum);
 	}
 
+	// Below are initialisation functions. They are supposed to be called
+	// once by the main thread.
 	static std::vector<vec3> generate()
 	{
 		std::vector<vec3> p(256);
 		for (int i = 0; i < 256; ++i)
-			p[i] = unit_vector(random::ninja()*2.f - vec3::one());
+			p[i] = unit_vector(g_RNG.ninja()*2.f - vec3::one());
 		return p;
 	}
 
@@ -138,7 +148,7 @@ struct perlin
 	{
 		for (int i = _n-1; i > 0; --i)
 		{
-			int target = int(random::sample() * (i+1));
+			int target = int(g_RNG.sample() * (i+1));
 			std::swap(_p[i], _p[target]);
 		}
 	}
@@ -159,10 +169,10 @@ struct perlin
 };
 
 
-std::vector<vec3>	perlin::ranvec = perlin::generate();
-std::vector<int>	perlin::perm_x = perlin::generate_perm();
-std::vector<int>	perlin::perm_y = perlin::generate_perm();
-std::vector<int>	perlin::perm_z = perlin::generate_perm();
+std::vector<vec3>	perlin::ranvec{};// = perlin::generate();
+std::vector<int>	perlin::perm_x{};// = perlin::generate_perm();
+std::vector<int>	perlin::perm_y{};// = perlin::generate_perm();
+std::vector<int>	perlin::perm_z{};// = perlin::generate_perm();
 
 
 #endif // __YS_PERLIN_HPP__

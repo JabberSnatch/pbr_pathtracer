@@ -3,6 +3,7 @@
 
 #include "hitable.hpp"
 #include "pdf.hpp"
+#include "random.hpp"
 
 
 struct scatter_record

@@ -2,28 +2,30 @@
 #define __YS_RANDOM_HPP__
 
 #include <random>
+#include <mutex>
 
 #include "vec3.hpp"
 
 
 struct random
 {
-	random() = delete;
-	~random() = delete;
+	inline float sample() {
+		return zero_not_one(random_generator);
+	}
 
-	static inline float sample() {
+	inline float sample_one_included() {
 		return zero_one(random_generator);
 	}
 
-	static inline float sample_relative() {
+	inline float sample_relative() {
 		return minus_one_one(random_generator);
 	}
 
-	static inline vec3 ninja() {
+	inline vec3 ninja() {
 		return vec3{sample(), sample(), sample()};
 	}
 
-	static vec3 in_unit_sphere() {
+	vec3 in_unit_sphere() {
 		vec3 direction{ vec3::one() };
 
 		while (direction.squared_length() >= 1.f)
@@ -32,7 +34,7 @@ struct random
 		return direction;
 	}
 
-	static vec3 on_unit_sphere()
+	vec3 on_unit_sphere()
 	{
 		float phi = 2.f * 3.1415926545f * sample();
 		float cos_theta = 1.f - 2.f * sample();
@@ -43,7 +45,7 @@ struct random
 		return vec3{x, y, z};
 	}
 
-	static vec3 cosine_direction()
+	vec3 cosine_direction()
 	{
 		float r1 = sample();
 		float r2 = sample();
@@ -54,7 +56,7 @@ struct random
 		return vec3{x, y, z};
 	}
 
-	static vec3 in_unit_disk()
+	vec3 in_unit_disk()
 	{
 		vec3 point{ vec3::one() };
 		while (dot(point, point) >= 1.0f)
@@ -64,7 +66,7 @@ struct random
 		return point;
 	}
 
-	static inline vec3 to_sphere(float _radius, float _distanceSquared)
+	inline vec3 to_sphere(float _radius, float _distanceSquared)
 	{
 		float r1 = sample();
 		float r2 = sample();
@@ -76,17 +78,23 @@ struct random
 	}
 
 
-	static std::random_device rd;
-	static std::mt19937 random_generator;
-	static std::uniform_real_distribution<float> zero_one;
-	static std::uniform_real_distribution<float> minus_one_one;
+	std::random_device rd{};
+	std::mt19937 random_generator{rd()};
+	std::uniform_real_distribution<float> zero_one{0.f, 1.f};
+	std::uniform_real_distribution<float> zero_not_one{0.f, one_minus_epsilon};
+	std::uniform_real_distribution<float> minus_one_one{-1.f, 1.f};
+
+	static const float one_minus_epsilon;
 };
 
+static thread_local random g_RNG{};
 
-std::random_device random::rd{};
-std::mt19937 random::random_generator{random::rd()};
-std::uniform_real_distribution<float> random::zero_one{0.f, 1.f};
-std::uniform_real_distribution<float> random::minus_one_one{-1.f, 1.f};
+
+const float			random::one_minus_epsilon = 1.f - FLT_MIN; // 0x1.fffffep-1; c++17 :(
+//std::random_device						random::rd{};
+//std::mt19937							random::random_generator{random::rd()};
+//std::uniform_real_distribution<float>	random::zero_one{0.f, 1.f};
+//std::uniform_real_distribution<float>	random::minus_one_one{-1.f, 1.f};
 
 
 

@@ -8,7 +8,7 @@
 struct hitable_pdf : public pdf
 {
 	hitable_pdf() = delete;
-	hitable_pdf(hitable& _rHitable, const vec3& _origin)
+	hitable_pdf(const hitable& _rHitable, const vec3& _origin)
 		:r_hitable{_rHitable}, origin{_origin}
 	{}
 
@@ -22,10 +22,10 @@ struct hitable_pdf : public pdf
 
 	vec3 generate() const override
 	{
-		return r_hitable.random(origin);
+		return r_hitable.to_random_position(origin);
 	}
 
-	hitable& r_hitable;
+	const hitable& r_hitable;
 	vec3 origin;
 };
 

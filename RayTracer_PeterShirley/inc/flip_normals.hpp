@@ -31,9 +31,9 @@ struct flip_normals : public hitable
 	{
 		return r_flipped.pdf_value(_origin, _v);
 	}
-	virtual vec3 random(const vec3& _origin) const override
+	virtual vec3 to_random_position(const vec3& _origin) const override
 	{
-		return r_flipped.random(_origin);
+		return r_flipped.to_random_position(_origin);
 	}
 
 	hitable& r_flipped;

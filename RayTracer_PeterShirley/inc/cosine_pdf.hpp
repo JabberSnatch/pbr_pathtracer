@@ -26,7 +26,7 @@ struct cosine_pdf : public pdf
 
 	vec3 generate() const override
 	{
-		return uvw.local(random::cosine_direction());
+		return uvw.local(g_RNG.cosine_direction());
 	}
 
 	

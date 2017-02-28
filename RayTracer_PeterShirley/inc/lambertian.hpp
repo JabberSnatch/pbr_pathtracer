@@ -24,7 +24,8 @@ struct lambertian : public material
 		_srecord.attenuation = albedo.value(_hrecord.u, _hrecord.v, _hrecord.p);
 		_srecord.p_pdf = std::unique_ptr<pdf>{new cosine_pdf{_hrecord.normal}};
 		
-		vec3 direction = _hrecord.normal + random::in_unit_sphere();
+		onb uvw{_hrecord.normal};
+		vec3 direction = uvw.local(g_RNG.cosine_direction());
 		_srecord.specular_ray = ray{_hrecord.p, unit_vector(direction), _rayIn.time};
 		return true;
 
@@ -34,7 +35,7 @@ struct lambertian : public material
 		//return true;
 	}
 
-	float scattering_pdf(const ray& _rayIn, const hit_record& _record, const ray& _scattered) const
+	float scattering_pdf(const ray& _rayIn, const hit_record& _record, const ray& _scattered) const override
 	{
 		float cosine = dot(_record.normal, unit_vector(_scattered.direction()));
 		cosine = ffmax(cosine, 0.f);

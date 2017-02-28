@@ -41,6 +41,27 @@ struct xy_rect : public hitable
 		_box = aabb{vec3{x0, y0, k-.0001f}, vec3{x1, y1, k+.0001f}};
 		return true;
 	}
+	float pdf_value(const vec3& _origin, const vec3& _v) const override
+	{
+		hit_record rec;
+		if (hit(ray{_origin, _v}, .001f, FLT_MAX, rec))
+		{
+			float area = (x1 - x0)*(y1 - y0);
+			float distance_squared = rec.t * rec.t * _v.squared_length();
+			float cosine = fabsf(dot(_v, rec.normal) / _v.length());
+			float result = distance_squared / (cosine * area);
+			return result;
+		}
+		else
+			return 0.f;
+	}
+	vec3 to_random_position(const vec3& _origin) const override
+	{
+		float x = x0 + g_RNG.sample()*(x1 - x0);
+		float y = y0 + g_RNG.sample()*(y1 - y0);
+		vec3 random_point{x, y, k};
+		return random_point - _origin;
+	}
 
 	float x0, x1, y0, y1, k;
 	material& r_material;
@@ -96,10 +117,10 @@ struct xz_rect : public hitable
 		else
 			return 0.f;
 	}
-	vec3 random(const vec3& _origin) const override
+	vec3 to_random_position(const vec3& _origin) const override
 	{
-		float x = x0 + random::sample()*(x1 - x0);
-		float z = z0 + random::sample()*(z1 - z0);
+		float x = x0 + g_RNG.sample()*(x1 - x0);
+		float z = z0 + g_RNG.sample()*(z1 - z0);
 		vec3 random_point{x, k, z};
 		return random_point - _origin;
 	}
@@ -144,7 +165,27 @@ struct yz_rect : public hitable
 		_box = aabb{vec3{k-.0001f, y0, z0}, vec3{k+.0001f, y1, z1}};
 		return true;
 	}
-
+	float pdf_value(const vec3& _origin, const vec3& _v) const override
+	{
+		hit_record rec;
+		if (hit(ray{_origin, _v}, .001f, FLT_MAX, rec))
+		{
+			float area = (y1 - y0)*(z1 - z0);
+			float distance_squared = rec.t * rec.t * _v.squared_length();
+			float cosine = fabsf(dot(_v, rec.normal) / _v.length());
+			float result = distance_squared / (cosine * area);
+			return result;
+		}
+		else
+			return 0.f;
+	}
+	vec3 to_random_position(const vec3& _origin) const override
+	{
+		float y = y0 + g_RNG.sample()*(y1 - y0);
+		float z = z0 + g_RNG.sample()*(z1 - z0);
+		vec3 random_point{k, y, z};
+		return random_point - _origin;
+	}
 	float y0, y1, z0, z1, k;
 	material& r_material;
 };

@@ -34,8 +34,8 @@ main()
 	const int N = 1000000;
 	for (int i = 0; i < N; ++i)
 	{
-		float x = random::sample_relative();
-		float y = random::sample_relative();
+		float x = g_RNG.sample_relative();
+		float y = g_RNG.sample_relative();
 		if (x*x + y*y < 1.f)
 			++inside_circle;
 	}
@@ -47,8 +47,8 @@ main()
 	for (;;)
 	{
 		++runs;
-		float x = random::sample_relative();
-		float y = random::sample_relative();
+		float x = g_RNG.sample_relative();
+		float y = g_RNG.sample_relative();
 		if (x*x + y*y < 1.f)
 			++inside_circle;
 		if ((runs & 0xfffffu) == 0)
@@ -64,12 +64,12 @@ main()
 	{
 		for (int j = 0; j < sqrt_N; ++j)
 		{
-			float x = random::sample_relative();
-			float y = random::sample_relative();
+			float x = g_RNG.sample_relative();
+			float y = g_RNG.sample_relative();
 			if (x*x + y*y < 1.f)
 				++inside_circle;
-			x = 2.f * ((i + random::sample()) / sqrt_N) - 1.f;
-			y = 2.f * ((j + random::sample()) / sqrt_N) - 1.f;
+			x = 2.f * ((i + g_RNG.sample()) / sqrt_N) - 1.f;
+			y = 2.f * ((j + g_RNG.sample()) / sqrt_N) - 1.f;
 			if (x*x + y*y < 1.f)
 				++inside_circle_stratified;
 		}
@@ -84,7 +84,7 @@ main()
 	float sum = .0f;
 	for (int i = 0; i < N; ++i)
 	{
-		float x = cdf_inv(random::sample());
+		float x = cdf_inv(g_RNG.sample());
 		sum += x*x / pdf(x);
 	}
 	std::cout << "I = " << sum / N << std::endl;

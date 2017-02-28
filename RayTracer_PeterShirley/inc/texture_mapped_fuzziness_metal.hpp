@@ -24,7 +24,7 @@ struct texture_mapped_fuzziness_metal : public material
 		_srecord.p_pdf = nullptr;
 		_srecord.specular_ray = ray{
 			_hrecord.p, 
-			reflected + fuzziness*random::in_unit_sphere(), 
+			reflected + fuzziness*g_RNG.in_unit_sphere(), 
 			_rayIn.time
 		};
 		_srecord.attenuation = albedo;

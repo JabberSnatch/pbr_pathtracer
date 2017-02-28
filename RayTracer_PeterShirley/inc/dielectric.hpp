@@ -40,7 +40,7 @@ struct dielectric : public material
 		else
 			reflect_probability = 1.0f;
 
-		if (random::sample() < reflect_probability)
+		if (g_RNG.sample() < reflect_probability)
 			_srecord.specular_ray = ray{_hrecord.p, reflected, _rayIn.time};
 		else
 			_srecord.specular_ray = ray{_hrecord.p, refracted, _rayIn.time};

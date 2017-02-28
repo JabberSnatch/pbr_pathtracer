@@ -28,11 +28,11 @@ struct camera
 		vertical = 2.f*half_height*_focusDistance*v;
 	}
 
-	ray get_ray(float _u, float _v) {
+	ray get_ray(float _u, float _v) const {
 		//return ray{origin, lower_left_corner + _u*horizontal + _v*vertical - origin};
-		vec3 random_lens_position = lens_radius * random::in_unit_disk();
+		vec3 random_lens_position = lens_radius * g_RNG.in_unit_disk();
 		vec3 offset = u*random_lens_position.x() + v*random_lens_position.y();
-		float time = time0 + random::sample()*(time1 - time0);
+		float time = time0 + g_RNG.sample()*(time1 - time0);
 		return ray{origin + offset, 
 				   lower_left_corner + _u*horizontal + _v*vertical - origin - offset,
 				   time};

@@ -19,7 +19,7 @@ struct metal : public material
 		_srecord.is_specular = true;
 		_srecord.specular_ray = ray{
 			_hrecord.p, 
-			reflected + fuzziness*random::in_unit_sphere(), 
+			reflected + fuzziness*g_RNG.in_unit_sphere(), 
 			_rayIn.time
 		};
 		_srecord.attenuation = albedo;

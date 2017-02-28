@@ -15,7 +15,7 @@ struct sphere : public hitable
 	bool hit(const ray& _r, float _tMin, float _tMax, hit_record& _rec) const override;
 	bool bounding_box(float _t0, float _t1, aabb& _box) const override;
 	float pdf_value(const vec3& _origin, const vec3& _v) const override;
-	vec3 random(const vec3& _origin) const override;
+	vec3 to_random_position(const vec3& _origin) const override;
 
 	void get_uv(const vec3& _dir, float& _u, float& _v) const
 	{
@@ -92,12 +92,12 @@ sphere::pdf_value(const vec3& _origin, const vec3& _v) const
 
 
 vec3
-sphere::random(const vec3& _origin) const
+sphere::to_random_position(const vec3& _origin) const
 {
 	vec3 direction = center - _origin;
 	float distance_squared = direction.squared_length();
 	onb uvw{direction};
-	return uvw.local(random::to_sphere(radius, distance_squared));
+	return uvw.local(g_RNG.to_sphere(radius, distance_squared));
 }
 
 

@@ -44,7 +44,7 @@ constant_medium::hit(const ray& _r, float _tMin, float _tMax, hit_record& _rec) 
 			if (rec1.t < 0)
 				rec1.t = 0;
 			float distance_inside_boundary = (rec2.t - rec1.t)*_r.direction().length();
-			float hit_distance = -(1.f / density)*log(random::sample());
+			float hit_distance = -(1.f / density)*log(g_RNG.sample());
 			if (hit_distance < distance_inside_boundary)
 			{
 				_rec.t = rec1.t + hit_distance / _r.direction().length();

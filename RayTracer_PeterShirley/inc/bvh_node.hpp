@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "lifetime_spreader.hpp"
 #include "hitable.hpp"
+#include "random.hpp"
 
 
 struct _box_comparator
@@ -52,7 +53,7 @@ bvh_node::bvh_node(std::vector<std::reference_wrapper<hitable>> _list, float _t0
 				   lifetime_spreader<hitable>& _spreader)
 {
 	{ // NOTE: sort the list along a random axis
-		_box_comparator comparer{_t0, _t1, int(3.f * random::sample())};
+		_box_comparator comparer{_t0, _t1, int(3.f * g_RNG.sample())};
 		std::sort(_list.begin(), _list.end(), comparer);
 	}
 

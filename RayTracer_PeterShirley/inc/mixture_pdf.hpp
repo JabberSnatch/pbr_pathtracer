@@ -19,7 +19,7 @@ struct mixture_pdf : public pdf
 
 	vec3 generate() const override
 	{
-		if (random::sample() < .5f)
+		if (g_RNG.sample() < .5f)
 			return p[0].get().generate();
 		else
 			return p[1].get().generate();

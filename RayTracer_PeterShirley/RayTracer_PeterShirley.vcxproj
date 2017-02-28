@@ -174,6 +174,7 @@
     <ClInclude Include="inc\metal.hpp" />
     <ClInclude Include="inc\mixture_pdf.hpp" />
     <ClInclude Include="inc\moving_sphere.hpp" />
+    <ClInclude Include="inc\multiply.hpp" />
     <ClInclude Include="inc\noise_texture.hpp" />
     <ClInclude Include="inc\orthonormal_basis.hpp" />
     <ClInclude Include="inc\pdf.hpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="inc\ray.hpp" />
     <ClInclude Include="inc\sphere.hpp" />
     <ClInclude Include="inc\texture.hpp" />
+    <ClInclude Include="inc\threading.hpp" />
     <ClInclude Include="inc\vec3.hpp" />
     <ClInclude Include="inc\aa_rectangles.hpp" />
   </ItemGroup>

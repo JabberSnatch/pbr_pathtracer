@@ -18,7 +18,7 @@ struct isotropic : public material
 				 const hit_record& _hrecord,
 				 scatter_record& _srecord) const override
 	{
-		_srecord.specular_ray = ray{_hrecord.p, random::in_unit_sphere()};
+		_srecord.specular_ray = ray{_hrecord.p, g_RNG.in_unit_sphere()};
 		_srecord.attenuation = albedo.value(_hrecord.u, _hrecord.v, _hrecord.p);
 		_srecord.is_specular = true;
 		_srecord.p_pdf = nullptr;
