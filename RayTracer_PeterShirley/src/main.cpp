@@ -36,7 +36,6 @@
 #include "cosine_pdf.hpp"
 #include "hitable_pdf.hpp"
 #include "mixture_pdf.hpp"
-#include "threading.hpp"
 #include "multiply.hpp"
 
 
