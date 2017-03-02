@@ -116,9 +116,6 @@
     <ClInclude Include="inc\mixture_pdf.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\threading.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\multiply.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
