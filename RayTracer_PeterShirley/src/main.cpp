@@ -37,43 +37,32 @@
 #include "hitable_pdf.hpp"
 #include "mixture_pdf.hpp"
 #include "multiply.hpp"
+#include "triangle.hpp"
+#include "bezier_patch.hpp"
 
 
-#define IMAGE_WIDTH 640
-#define IMAGE_HEIGHT 360
-#define SAMPLE_COUNT 2000
+#define IMAGE_WIDTH 1280
+#define IMAGE_HEIGHT 720
+#define SAMPLE_COUNT 400
 #define MULTITHREADED
 #define GROUP_WIDTH 8
 #define GROUP_HEIGHT 8
 #define NONUNIFORM_SAMPLING
 
 //#define CORNELL_BOX
-#define USUAL_SCENE
+//#define USUAL_SCENE
 //#define SPAWN_RANDOM_SPHERES
 #define RANDOM_SPHERE_COUNT 10
 #define HOLLOWED_GLASS_BALL
+#define BEZIER_PATCH_DEMO
 
-#define IMPORTANCE_SAMPLING
+//#define IMPORTANCE_SAMPLING
 #define COLOR_LIT_SCENE
 
 #define GAUSSIAN_FILTER
 //#define TRIANGLE_FILTER
 //#define BOX_FILTER
 
-
-float 
-hit_sphere(const vec3& _center, float _radius, const ray& _r)
-{
-	vec3 oc = _r.origin() - _center;
-	float a = dot(_r.direction(), _r.direction());
-	float b = 2.f * dot(oc, _r.direction());
-	float c = dot(oc, oc) - _radius*_radius;
-	float discriminant = b*b - 4 * a*c;
-	if (discriminant < 0.f)
-		return -1.0f;
-	else
-		return (-b - sqrt(discriminant)) / (2.f * a);
-}
 
 
 void
@@ -371,6 +360,155 @@ usual_scene(hitable_list& _scene, hitable_list& _favoredHitables,
 }
 
 
+void
+bezier_patch_demo(hitable_list& _scene, hitable_list& _favoredHitables,
+				  lifetime_spreader<hitable>& _hitable_spreader,
+				  lifetime_spreader<material>& _material_spreader,
+				  lifetime_spreader<texture>& _texture_spreader)
+{
+	texture&	solid_yellow {_texture_spreader.add_object(
+		new constant_texture{vec3{1.f, 1.f, 0.f}}
+	)};
+	texture&	white {_texture_spreader.add_object(
+		new constant_texture{vec3::one()}
+	)};
+	texture&	black {_texture_spreader.add_object(
+		new constant_texture{vec3::zero()}
+	)};
+	texture&	red {_texture_spreader.add_object(
+		new constant_texture{vec3{1.f, 0.f, 0.f}}
+	)};
+	texture&	green {_texture_spreader.add_object(
+		new constant_texture{vec3{0.f, 1.f, 0.f}}
+	)};
+	texture&	blue {_texture_spreader.add_object(
+		new constant_texture{vec3{0.f, 0.f, 1.f}}
+	)};
+	float intense_factor {4.f};
+	texture&	intense_red {_texture_spreader.add_object(
+		new constant_texture {vec3 {.9f, .1f, .1f} * intense_factor}
+	)};
+	texture&	intense_green {_texture_spreader.add_object(
+		new constant_texture {vec3 {.1f, .9f, .1f} * intense_factor}
+	)};
+	texture&	intense_blue {_texture_spreader.add_object(
+		new constant_texture {vec3 {.1f, .1f, .9f} * intense_factor}
+	)};
+	texture&	checker {_texture_spreader.add_object(
+		new checker_texture{white, black}
+	)};
+
+	material&	lambert_yellow {_material_spreader.add_object(
+		new lambertian{solid_yellow}
+	)};
+	material&	lambert_red {_material_spreader.add_object(
+		new lambertian {red}
+	)};
+	material&	lambert_green {_material_spreader.add_object(
+		new lambertian {green}
+	)};
+	material&	lambert_blue {_material_spreader.add_object(
+		new lambertian {blue}
+	)};
+	material&	lambert_black {_material_spreader.add_object(
+		new lambertian {black}
+	)};
+	material&	lambert_white {_material_spreader.add_object(
+		new lambertian {white}
+	)};
+	material&	lambert_checker {_material_spreader.add_object(
+		new lambertian {checker}
+	)};
+	material&	light_red {_material_spreader.add_object(
+		new diffuse_light {intense_red}
+	)};
+	material&	light_green {_material_spreader.add_object(
+		new diffuse_light {intense_green}
+	)};
+	material&	light_blue {_material_spreader.add_object(
+		new diffuse_light {intense_blue}
+	)};
+	material&	smooth_metal {_material_spreader.add_object(
+		new metal {vec3 {0.6f, 0.6f, 0.6f}, 0.2f}
+	)};
+
+	hitable&	test_triangle {_hitable_spreader.add_object(
+		new triangle{
+			vec3{-1.f, 1.f, 0.f},
+			vec3{1.f, 1.f, 0.f},
+			vec3{0.f, 2.f, 0.f},
+			lambert_white
+		}
+	)};
+
+	hitable&	test_bezier {_hitable_spreader.add_object(
+		new bezier_patch {
+			{
+				{-1.f, 0.f, 0.f}, {-.5f, 1.f, 0.f}, {.5f, 1.f, 0.f}, {1.f, 0.f, 0.f},
+				{-1.f, 0.2f, 1.f}, {-.5f, -1.2f, 1.f}, {.5f, -1.2f, 1.f}, {1.f, 0.2f, 1.f},
+				{-1.f, 0.4f, 2.f}, {-.5f, -1.4f, 2.f}, {.5f, -1.4f, 2.f}, {1.f, 0.4f, 2.f},
+				{-1.f, 0.6f, 3.f}, {-.5f, 1.6f, 3.f}, {.5f, 1.6f, 3.f}, {1.f, 0.6f, 3.f},
+			},
+			20,
+			lambert_white
+		}
+	)};
+
+	hitable&	o_sphere {_hitable_spreader.add_object(
+		new sphere { vec3::zero(), 0.1f, lambert_black}
+	)};
+	hitable&	x_sphere {_hitable_spreader.add_object(
+		new sphere {vec3{1.f, 0.f, 0.f}, 0.1f, lambert_red}
+	)};
+	hitable&	y_sphere {_hitable_spreader.add_object(
+		new sphere {vec3 {0.f, 1.f, 0.f}, 0.1f, lambert_green}
+	)};
+	hitable&	z_sphere {_hitable_spreader.add_object(
+		new sphere {vec3 {0.f, 0.f, 1.f}, 0.1f, lambert_blue}
+	)};
+
+	hitable&	ref_sphere {_hitable_spreader.add_object(
+		new sphere {vec3 {0.f, 1.4f, 1.5f}, .4f, smooth_metal}
+	)};
+	hitable&	ground {_hitable_spreader.add_object(
+		new xz_rect {-10.f, 10.f, -10.f, 10.f, -2.f, lambert_checker}
+	)};
+
+	hitable&	x_light {_hitable_spreader.add_object(
+		//new sphere {vec3 {2.f, 0.f, 1.5f}, 0.5f, light_red}
+		new flip_normals{_hitable_spreader.add_object(
+			new yz_rect {-1.5f, 1.5f, -1.f, 4.f, 5.f, light_red}
+		)}
+	)};
+	hitable&	y_light {_hitable_spreader.add_object(
+		//new sphere {vec3 {0.f, 2.f, 1.5f}, 0.5f, light_green}
+		new flip_normals {_hitable_spreader.add_object(
+			new xz_rect {-1.5f, 1.5f, -1.f, 2.f, 5.f, light_green}
+		)}
+	)};
+	hitable&	z_light {_hitable_spreader.add_object(
+		//new sphere {vec3 {0.f, 0.f, 3.5f}, 0.5f, light_blue}
+		new xy_rect {-1.5f, 1.5f, -1.5f, 1.5f, -4.5f, light_blue}
+	)};
+
+
+	_scene.list.push_back(std::ref(test_bezier));
+	//_scene.list.push_back(std::ref(test_triangle));
+	_scene.list.push_back(std::ref(ground));
+	//_scene.list.push_back(std::ref(o_sphere));
+	//_scene.list.push_back(std::ref(x_sphere));
+	//_scene.list.push_back(std::ref(y_sphere));
+	//_scene.list.push_back(std::ref(z_sphere));
+	_scene.list.push_back(std::ref(ref_sphere));
+	_scene.list.push_back(std::ref(x_light));
+	_scene.list.push_back(std::ref(y_light));
+	_scene.list.push_back(std::ref(z_light));
+	_favoredHitables.list.push_back(std::ref(x_light));
+	_favoredHitables.list.push_back(std::ref(y_light));
+	_favoredHitables.list.push_back(std::ref(z_light));
+}
+
+
 
 vec3
 color(const ray& _r, const hitable& _world, const hitable& _lightShape, int _depth)
@@ -623,6 +761,22 @@ main()
 	float fov = 40.f;
 	main_camera = camera{
 		view_position, look_position, vec3{0.f, 1.f, 0.f},
+		fov, float(image_width) / float(image_height), aperture,
+		dist_to_focus, 0.f, 1.f
+	};
+#endif
+
+#ifdef BEZIER_PATCH_DEMO
+	bezier_patch_demo(world, favored_hitable, hitable_spreader, material_spreader, texture_spreader);
+
+	vec3 view_position {4.f, 1.2f, -.75f};
+	//vec3 view_position {0.f, 1.2f, -3.f};
+	vec3 look_position {0.f, .2f, 1.5f};
+	float dist_to_focus = 10.f;
+	float aperture = 0.f;
+	float fov = 40.f;
+	main_camera = camera {
+		view_position, look_position, vec3 {0.f, 1.f, 0.f},
 		fov, float(image_width) / float(image_height), aperture,
 		dist_to_focus, 0.f, 1.f
 	};

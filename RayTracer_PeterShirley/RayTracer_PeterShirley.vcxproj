@@ -153,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\aabb.hpp" />
+    <ClInclude Include="inc\bezier_patch.hpp" />
     <ClInclude Include="inc\box.hpp" />
     <ClInclude Include="inc\bvh_node.hpp" />
     <ClInclude Include="inc\camera.hpp" />
@@ -183,6 +184,7 @@
     <ClInclude Include="inc\ray.hpp" />
     <ClInclude Include="inc\sphere.hpp" />
     <ClInclude Include="inc\texture.hpp" />
+    <ClInclude Include="inc\triangle.hpp" />
     <ClInclude Include="inc\vec3.hpp" />
     <ClInclude Include="inc\aa_rectangles.hpp" />
   </ItemGroup>
