@@ -25,6 +25,7 @@
     <ClInclude Include="inc\NaiveProfiler.hpp" />
     <ClInclude Include="inc\Profiler.hpp" />
     <ClInclude Include="inc\Timer.hpp" />
+    <ClInclude Include="inc\Win32Timer.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A8264D7D-2B1C-451A-B874-43BE64E9D0D6}</ProjectGuid>

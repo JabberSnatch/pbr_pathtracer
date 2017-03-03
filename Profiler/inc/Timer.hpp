@@ -1,3 +1,7 @@
+#ifdef WIN32_TIMER
+#include "Win32Timer.hpp"
+#else
+
 #ifndef __YS_TIMER_HPP__
 #define __YS_TIMER_HPP__
 
@@ -50,3 +54,5 @@ struct SlaveTimer
 
 
 #endif // __YS_TIMER_HPP__
+
+#endif // WIN32_TIMER

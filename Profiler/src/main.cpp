@@ -1,4 +1,6 @@
 
+#define WIN32_TIMER
+
 #include <vector>
 
 #include "random.hpp"
@@ -11,8 +13,8 @@
 #define ITER_COUNT 100000
 #define VALUE_COUNT 1000
 
-//#define PROFILERS_BENCH
-#define SORT_BENCH
+#define PROFILERS_BENCH
+//#define SORT_BENCH
 
 
 void	bubble_sort(std::vector<float> &_vector);
@@ -23,6 +25,9 @@ size_t	partition(std::vector<float> &_vector, size_t _begin, size_t _end);
 
 void	profilers_benchmark(size_t const _iter_count, size_t const _querry_count);
 void	sort_benchmark(size_t const _iter_count, size_t const _array_size);
+
+
+void	print_timer(MasterTimer const &_timer);
 
 
 int
@@ -145,7 +150,7 @@ profilers_benchmark(size_t const _iter_count, size_t const _querry_count)
 		}
 
 		for (auto& pair : NaiveProfiler::timers)
-			std::cout << pair.second.name << " : " << pair.second.average() << ", " << pair.second.best() << std::endl;
+			print_timer(pair.second);
 	}
 
 	// FNV_HASH IMPLEMENTATION
@@ -159,7 +164,7 @@ profilers_benchmark(size_t const _iter_count, size_t const _querry_count)
 		}
 
 		for (auto& pair : FNV_Hashed_Profiler::timers)
-			std::cout << pair.second.name << " : " << pair.second.average() << ", " << pair.second.best() << std::endl;
+			print_timer(pair.second);
 	}
 
 	// CONSTEXPR IMPLEMENTATION
@@ -173,7 +178,22 @@ profilers_benchmark(size_t const _iter_count, size_t const _querry_count)
 		}
 
 		for (auto& pair : Profiler::timers)
-			std::cout << pair.second.name << " : " << pair.second.average() << ", " << pair.second.best() << std::endl;
+			print_timer(pair.second);
+	}
+
+	Profiler::timers.clear();
+	// CONSTEXPR IMPLEMENTATION (Using user-defined literal)
+	std::cout << std::endl << "PRE-HASHED (I hope?) + user-defined literal" << std::endl;
+	{
+		for (size_t iter = 0; iter < _iter_count; ++iter)
+		{
+			SlaveTimer timer {Profiler::GetMaster("GET_MASTER"_hashed, "GET_MASTER")};
+			for (size_t querry = 0; querry < _querry_count; ++querry)
+				Profiler::GetMaster("DUMMY"_hashed, "DUMMY");
+		}
+
+		for (auto& pair : Profiler::timers)
+			print_timer(pair.second);
 	}
 }
 
@@ -209,7 +229,24 @@ sort_benchmark(size_t const _iter_count, size_t const _array_size)
 		}
 
 		for (auto& pair : Profiler::timers)
-			std::cout << pair.second.name << " : " << pair.second.average() << ", " << pair.second.best() << std::endl;
+			print_timer(pair.second);
 	}
+}
+
+
+void
+print_timer(MasterTimer const &_timer)
+{
+	std::cout << 
+		_timer.name << ", " << 
+		_timer.total() << ", " << 
+		_timer.average() << ", " << 
+		_timer.best() << ", " << 
+		_timer.best_time << ", " <<
+		_timer.accumulated_time <<
+#ifdef WIN32_TIMER
+		", " << _timer.average_tick() << 
+#endif
+	std::endl;
 }
 
