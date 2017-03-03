@@ -1,5 +1,7 @@
 
-#define WIN32_TIMER
+#ifdef _WIN32
+#define WIN32_TIMERS
+#endif
 
 #include <vector>
 
@@ -10,8 +12,8 @@
 
 
 #define BENCH_COUNT 5
-#define ITER_COUNT 100000
-#define VALUE_COUNT 1000
+#define ITER_COUNT 10000
+#define VALUE_COUNT 10000
 
 #define PROFILERS_BENCH
 //#define SORT_BENCH
@@ -237,16 +239,16 @@ sort_benchmark(size_t const _iter_count, size_t const _array_size)
 void
 print_timer(MasterTimer const &_timer)
 {
+	if (_timer.call_count == 0) return;
+
 	std::cout << 
 		_timer.name << ", " << 
 		_timer.total() << ", " << 
 		_timer.average() << ", " << 
 		_timer.best() << ", " << 
-		_timer.best_time << ", " <<
-		_timer.accumulated_time <<
-#ifdef WIN32_TIMER
-		", " << _timer.average_tick() << 
-#endif
+		_timer.best_tick() << ", " <<
+		_timer.total_tick() << ", " << 
+		_timer.average_tick() << 
 	std::endl;
 }
 

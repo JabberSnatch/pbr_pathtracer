@@ -1,4 +1,4 @@
-#ifdef WIN32_TIMER
+#ifdef WIN32_TIMERS
 #include "Win32Timer.hpp"
 #else
 
@@ -25,11 +25,17 @@ struct MasterTimer
 	}
 
 	inline double
-	accumulated() const { return accumulated_time.count() / (double)Period::den; }
+	total() const { return accumulated_time.count() / (double)Period::den; }
 	inline double 
-	average() const { return accumulated() / (double)call_count; }
+	average() const { return total() / (double)call_count; }
 	inline double 
 	best() const { return best_time.count() / (double)Period::den; }
+	inline unsigned long long
+	total_tick() const { return accumulated_time.count(); }
+	inline unsigned long long
+	best_tick() const { return best_time.count(); }
+	inline unsigned long long
+	average_tick() const { return accumulated_time.count() / call_count; }
 
 	char const			*name {};
 	Duration			accumulated_time {0};

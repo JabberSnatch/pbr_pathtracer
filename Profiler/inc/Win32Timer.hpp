@@ -25,7 +25,11 @@ struct MasterTimer
 	inline double
 	best() const { return best_time / (double)frequency.QuadPart; }
 	inline Duration
-	average_tick() const { return (accumulated_time * 1000000) / frequency.QuadPart; }
+	total_tick() const { return accumulated_time; }
+	inline Duration
+	best_tick() const { return best_time; }
+	inline Duration
+	average_tick() const { return accumulated_time / call_count; }
 
 	char const			*name {};
 	Duration			accumulated_time {0};
