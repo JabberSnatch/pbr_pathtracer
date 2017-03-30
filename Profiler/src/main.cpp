@@ -3,6 +3,8 @@
 #define WIN32_TIMERS
 #endif
 
+#include <intrin.h>
+
 #include <vector>
 
 #include "random.hpp"
@@ -134,8 +136,10 @@ void
 profilers_benchmark(size_t const _iter_count, size_t const _querry_count)
 {
 	NaiveProfiler::timers.clear();
-	Profiler::timers.clear();
 	FNV_Hashed_Profiler::timers.clear();
+	FNV_PreHashed_Profiler::timers.clear();
+	Profiler::timers.clear();
+
 
 	std::cout << std::endl << "PROFILERS_BENCH" << std::endl;
 
@@ -151,6 +155,17 @@ profilers_benchmark(size_t const _iter_count, size_t const _querry_count)
 				NaiveProfiler::GetMaster("DUMMY");
 		}
 
+		long long cycle_count = 0;
+		long long start;
+
+		start = __rdtsc();
+		{
+			SlaveTimer timer{ NaiveProfiler::GetMaster("GET_MASTER") };
+		}
+		cycle_count += __rdtsc() - start;
+
+		std::cout << cycle_count << std::endl;
+
 		for (auto& pair : NaiveProfiler::timers)
 			print_timer(pair.second);
 	}
@@ -165,6 +180,17 @@ profilers_benchmark(size_t const _iter_count, size_t const _querry_count)
 				FNV_Hashed_Profiler::GetMaster("DUMMY");
 		}
 
+		long long cycle_count = 0;
+		long long start;
+
+		start = __rdtsc();
+		{
+			SlaveTimer timer{ FNV_Hashed_Profiler::GetMaster("GET_MASTER") };
+		}
+		cycle_count += __rdtsc() - start;
+
+		std::cout << cycle_count << std::endl;
+
 		for (auto& pair : FNV_Hashed_Profiler::timers)
 			print_timer(pair.second);
 	}
@@ -174,25 +200,72 @@ profilers_benchmark(size_t const _iter_count, size_t const _querry_count)
 	{
 		for (size_t iter = 0; iter < _iter_count; ++iter)
 		{
-			SlaveTimer timer {Profiler::GetMaster("GET_MASTER")};
+			SlaveTimer timer {FNV_PreHashed_Profiler::GetMaster("GET_MASTER")};
 			for (size_t querry = 0; querry < _querry_count; ++querry)
-				Profiler::GetMaster("DUMMY");
+				FNV_PreHashed_Profiler::GetMaster("DUMMY");
 		}
 
-		for (auto& pair : Profiler::timers)
+		long long cycle_count = 0;
+		long long start;
+
+		start = __rdtsc();
+		{
+			SlaveTimer timer{ FNV_PreHashed_Profiler::GetMaster("GET_MASTER") };
+		}
+		cycle_count += __rdtsc() - start;
+
+		std::cout << cycle_count << std::endl;
+
+		for (auto& pair : FNV_PreHashed_Profiler::timers)
 			print_timer(pair.second);
 	}
 
-	Profiler::timers.clear();
+	FNV_PreHashed_Profiler::timers.clear();
 	// CONSTEXPR IMPLEMENTATION (Using user-defined literal)
 	std::cout << std::endl << "PRE-HASHED (I hope?) + user-defined literal" << std::endl;
 	{
 		for (size_t iter = 0; iter < _iter_count; ++iter)
 		{
-			SlaveTimer timer {Profiler::GetMaster("GET_MASTER"_hashed, "GET_MASTER")};
+			SlaveTimer timer {FNV_PreHashed_Profiler::GetMaster("GET_MASTER"_hashed, "GET_MASTER")};
 			for (size_t querry = 0; querry < _querry_count; ++querry)
-				Profiler::GetMaster("DUMMY"_hashed, "DUMMY");
+				FNV_PreHashed_Profiler::GetMaster("DUMMY"_hashed, "DUMMY");
 		}
+
+		long long cycle_count = 0;
+		long long start;
+
+		start = __rdtsc();
+		{
+			SlaveTimer timer{ FNV_PreHashed_Profiler::GetMaster("GET_MASTER"_hashed, "GET_MASTER") };
+		}
+		cycle_count += __rdtsc() - start;
+
+		std::cout << cycle_count << std::endl;
+
+		for (auto& pair : FNV_PreHashed_Profiler::timers)
+			print_timer(pair.second);
+	}
+
+	// EXTENDED CONSTEXPR IMPLEMENTATION
+	std::cout << std::endl << "LATEST" << std::endl;
+	{
+		for (size_t iter = 0; iter < _iter_count; ++iter)
+		{
+			SlaveTimer timer {Profiler::GetMaster(Profiler::FNV_Hash{"GET_MASTER"})};
+			for (size_t querry = 0; querry < _querry_count; ++querry)
+				Profiler::GetMaster(Profiler::FNV_Hash {"DUMMY"});
+		}
+
+		long long cycle_count = 0;
+		long long start;
+
+		start = __rdtsc();
+		{
+			SlaveTimer timer{ Profiler::GetMaster(Profiler::FNV_Hash{ "GET_MASTER" }) };
+		}
+		cycle_count += __rdtsc() - start;
+
+		std::cout << cycle_count << std::endl;
 
 		for (auto& pair : Profiler::timers)
 			print_timer(pair.second);

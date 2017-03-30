@@ -21,51 +21,39 @@ struct Profiler
 
 	struct FNV_Hash
 	{
-		constexpr FNV_Hash() = default;
-
 		static constexpr u64 prime {1099511628211Ui64};
 		static constexpr u64 offset {0xcbf29ce484222325Ui64};
 
-		constexpr u64
-		operator()(char const *_v) const
+		static constexpr u64
+		compute_hash(char const *_v)
 		{
 			u64 hash {offset};
-			char const *ite{_v};
-			while (*ite != '\0')
+			while (*_v != '\0')
 			{
 				hash *= prime;
-				hash ^= *ite;
-				++ite;
+				hash ^= *_v;
+				++_v;
 			}
 			return hash;
 		}
+
+		constexpr FNV_Hash(char const *_v)
+			: hash {compute_hash(_v)}, value {_v}
+		{}
+
+		u64 const hash;
+		char const *const value;
 	};
 
 	using TimerTable = std::unordered_map<u64, MasterTimer, IdentityHash<u64>>;
 
-	static constexpr u64
-	compute_hash(char const *_key)
-	{
-		return FNV_Hash{}(_key);
-	}
-
 	static MasterTimer&
-	GetMaster(char const *_key)
+	GetMaster(FNV_Hash const &_hash)
 	{
-		u64 hash{compute_hash(_key)};
-		auto ite{timers.find(hash)};
+		auto ite{timers.find(_hash.hash)};
 		if (ite != timers.end())
 			return ite->second;
-		return timers.emplace(hash, MasterTimer {_key}).first->second;
-	}
-
-	static MasterTimer&
-	GetMaster(u64 _hash, char const *_key)
-	{
-		auto ite {timers.find(_hash)};
-		if (ite != timers.end())
-			return ite->second;
-		return timers.emplace(_hash, MasterTimer {_key}).first->second;
+		return timers.emplace(_hash.hash, MasterTimer {_hash.value}).first->second;
 	}
 
 	static TimerTable timers;
@@ -75,11 +63,11 @@ struct Profiler
 Profiler::TimerTable Profiler::timers{};
 
 
-constexpr Profiler::u64
-operator "" _hashed(char const *_key, size_t _size)
-{
-	return Profiler::FNV_Hash {}(_key);
-}
+//constexpr Profiler::u64
+//operator "" _hashed(char const *_key, size_t _size)
+//{
+//	return Profiler::FNV_Hash {_key}.hash;
+//}
 
 
 #endif // __YS_PROFILER_HPP__
