@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracer_PeterShirley", "RayTracer_PeterShirley\RayTracer_PeterShirley.vcxproj", "{9CCF48D9-3DDD-4208-B708-B513BBDF1718}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MonteCarlo", "MonteCarlo\MonteCarlo.vcxproj", "{CA1C7F83-D171-43EA-A5CF-CEC248C48B86}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Profiler", "Profiler\Profiler.vcxproj", "{A8264D7D-2B1C-451A-B874-43BE64E9D0D6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RayTracer", "RayTracer\RayTracer.vcxproj", "{2313ED10-8433-4EDB-AA01-7B11A863A9EC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,8 +19,8 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9CCF48D9-3DDD-4208-B708-B513BBDF1718}.Debug|x64.ActiveCfg = Debug|x64
-		{9CCF48D9-3DDD-4208-B708-B513BBDF1718}.Debug|x64.Build.0 = Debug|x64
+		{9CCF48D9-3DDD-4208-B708-B513BBDF1718}.Debug|x64.ActiveCfg = Debug|Win32
+		{9CCF48D9-3DDD-4208-B708-B513BBDF1718}.Debug|x64.Build.0 = Debug|Win32
 		{9CCF48D9-3DDD-4208-B708-B513BBDF1718}.Debug|x86.ActiveCfg = Debug|Win32
 		{9CCF48D9-3DDD-4208-B708-B513BBDF1718}.Debug|x86.Build.0 = Debug|Win32
 		{9CCF48D9-3DDD-4208-B708-B513BBDF1718}.Release|x64.ActiveCfg = Release|x64
@@ -41,6 +43,14 @@ Global
 		{A8264D7D-2B1C-451A-B874-43BE64E9D0D6}.Release|x64.Build.0 = Release|x64
 		{A8264D7D-2B1C-451A-B874-43BE64E9D0D6}.Release|x86.ActiveCfg = Release|Win32
 		{A8264D7D-2B1C-451A-B874-43BE64E9D0D6}.Release|x86.Build.0 = Release|Win32
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Debug|x64.ActiveCfg = Debug|x64
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Debug|x64.Build.0 = Debug|x64
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Debug|x86.ActiveCfg = Debug|Win32
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Debug|x86.Build.0 = Debug|Win32
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Release|x64.ActiveCfg = Release|x64
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Release|x64.Build.0 = Release|x64
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Release|x86.ActiveCfg = Release|Win32
+		{2313ED10-8433-4EDB-AA01-7B11A863A9EC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
