@@ -77,6 +77,12 @@ TYPED_TEST(FloatVectorTest, EqualOp)
 	EXPECT_TRUE(test_vector != vector);
 }
 
+TYPED_TEST(FloatVectorTest, MinMaxDimension)
+{
+	EXPECT_EQ(maths::vector::MaximumDimension(vector), vector.size - 1u);
+	EXPECT_EQ(maths::vector::MinimumDimension(vector), 0u);
+}
+
 
 class Vec3fTest : public ::testing::Test
 {
@@ -111,4 +117,57 @@ TEST_F(Vec3fTest, CrossProduct)
 	EXPECT_DECIMAL_EQ(maths::vector::Dot(cross, x), 0._d);
 
 	EXPECT_DECIMAL_EQ(maths::vector::Dot(maths::vector::Cross(y, x), z), -1._d);
+}
+
+
+
+typedef ::testing::Types<maths::Norm3f, maths::Normal<maths::Decimal, 50>> normal_types;
+
+template <typename T>
+class NormalTest : public ::testing::Test
+{
+protected:
+	NormalTest() :
+		x(0._d), y(0._d), z(0._d)
+	{
+		for (uint32_t i = 1; i <= normalA.size; ++i)
+		{
+			normalA[i - 1] = maths::Decimal(i);
+			normalB[i - 1] = maths::Decimal(i) * 2._d;
+		}
+		x[0] = 1._d;
+		y[1] = 1._d;
+		z[2] = 1._d;
+	}
+
+	T		normalA;
+	T		normalB;
+	T		x;
+	T		y;
+	T		z;
+};
+
+TYPED_TEST_CASE(NormalTest, normal_types);
+
+TYPED_TEST(NormalTest, Normalization)
+{
+	EXPECT_GT(maths::normal::Length(normalA), 1._d);
+	auto	normalized = maths::normal::Normalized(normalA);
+	EXPECT_DECIMAL_EQ(maths::normal::Length(normalized), 1._d);
+}
+
+TYPED_TEST(NormalTest, Directions)
+{
+	auto	x_facing = maths::normal::FaceForward(normalA, x);
+	auto	normalized = maths::normal::Normalized(normalA);
+	auto	z_facing = maths::normal::FaceForward(normalized, z);
+	auto	minusZ_facing = maths::normal::FaceForward(normalized, -z);
+
+	EXPECT_GT(maths::normal::Dot(x_facing, x), 0._d);
+	EXPECT_GT(maths::normal::Dot(x_facing, normalA), 0._d);
+
+	EXPECT_DECIMAL_EQ(maths::normal::Dot(z_facing, minusZ_facing), -1._d);
+	EXPECT_GT(maths::normal::Dot(z_facing, z), 0._d);
+	EXPECT_GT(maths::normal::Dot(z_facing, normalized), 0._d);
+	EXPECT_LT(maths::normal::Dot(minusZ_facing, normalized), 0._d);
 }
