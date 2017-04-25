@@ -3,7 +3,7 @@
 #define __YS_GLOBAL_DEFINITIONS_HPP__
 
 
-#define YS_DECIMAL_IS_DOUBLE
+//#define YS_DECIMAL_IS_DOUBLE
 
 
 #include "maths.h"
@@ -14,6 +14,9 @@
 #else
 #define ASSERT_DECIMAL_EQ ASSERT_FLOAT_EQ
 #define EXPECT_DECIMAL_EQ EXPECT_FLOAT_EQ
+#ifdef _DEBUG
+#define YS_REDECIMAL_HAS_PRECISE 1
+#endif
 #endif
 
 

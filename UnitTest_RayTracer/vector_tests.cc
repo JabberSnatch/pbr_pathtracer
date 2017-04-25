@@ -119,6 +119,16 @@ TEST_F(Vec3fTest, CrossProduct)
 	EXPECT_DECIMAL_EQ(maths::vector::Dot(maths::vector::Cross(y, x), z), -1._d);
 }
 
+TEST_F(Vec3fTest, Reflect)
+{
+	maths::Vec3f	direction = maths::vector::Normalized(vector);
+	maths::Vec3f	reflected = maths::vector::Reflect(direction, x);
+
+	EXPECT_DECIMAL_EQ(maths::vector::Dot(direction, x), maths::vector::Dot(reflected, x));
+	EXPECT_DECIMAL_EQ(maths::vector::Dot(direction, y), -maths::vector::Dot(reflected, y));
+	EXPECT_DECIMAL_EQ(maths::vector::Dot(direction, z), -maths::vector::Dot(reflected, z));
+}
+
 
 
 typedef ::testing::Types<maths::Norm3f, maths::Normal<maths::Decimal, 50>> normal_types;
