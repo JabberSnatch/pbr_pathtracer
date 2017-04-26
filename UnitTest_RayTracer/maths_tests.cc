@@ -127,6 +127,86 @@ TEST(UtilityFunctions, Abs)
 }
 
 
+TEST(SqrtTestFloat, Sqrt)
+{
+	maths::FloatBitsMapper mapper(0.f), root(0.f), check(0.f), sqr(0.f), sqrv(0.f);
+	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 100)
+	{
+		mapper.bits = i;
+		root.value = maths::Sqrt(mapper.value);
+		check.value = std::sqrt(mapper.value);
+		sqr.value = root.value * root.value;
+		sqrv.value = check.value * check.value;
+		if (root.bits != check.bits)
+		{
+			//EXPECT_LE(maths::Max(root.bits, check.bits) - maths::Min(root.bits, check.bits), 10u);
+			//EXPECT_LE(maths::Max(sqr.bits, sqrv.bits) - maths::Min(sqr.bits, sqrv.bits), 10u);
+		}
+	}
+}
+
+TEST(SqrtTestFloat, stdSqrtPerf)
+{
+	float storage = 0.f;
+	maths::FloatBitsMapper mapper(0.f);
+	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 100)
+	{
+		mapper.bits = i;
+		storage = std::sqrt(mapper.value);
+	}
+}
+
+TEST(SqrtTestFloat, mathsSqrtPerf)
+{
+	float storage = 0.f;
+	maths::FloatBitsMapper mapper(0.f);
+	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 100)
+	{
+		mapper.bits = i;
+		storage = maths::Sqrt(mapper.value);
+	}
+}
+
+TEST(SqrtTestDouble, Sqrt)
+{
+	maths::DoubleBitsMapper mapper(0.), root(0.), check(0.), sqr(0.), sqrv(0.);
+	for (uint64_t i = 0; i <= maths::FloatMeta<double>::exponent_mask; i += 1000000)
+	{
+		mapper.bits = i;
+		root.value = maths::Sqrt(mapper.value);
+		check.value = std::sqrt(mapper.value);
+		sqr.value = root.value * root.value;
+		sqrv.value = check.value * check.value;
+		if (root.bits != check.bits)
+		{
+			EXPECT_LE(maths::Max(root.bits, check.bits) - maths::Min(root.bits, check.bits), 10u);
+			EXPECT_LE(maths::Max(sqr.bits, sqrv.bits) - maths::Min(sqr.bits, sqrv.bits), 10u);
+		}
+	}
+}
+
+TEST(SqrtTestDouble, stdSqrtPerf)
+{
+	double storage = 0.;
+	maths::DoubleBitsMapper mapper(0.);
+	for (uint64_t i = 0; i <= maths::FloatMeta<double>::exponent_mask; i += 1000000)
+	{
+		mapper.bits = i;
+		storage = std::sqrt(mapper.value);
+	}
+}
+
+TEST(SqrtTestDouble, mathsSqrtPerf)
+{
+	double storage = 0.;
+	maths::DoubleBitsMapper mapper(0.);
+	for (uint32_t i = 0; i <= maths::FloatMeta<double>::exponent_mask; i += 1000000)
+	{
+		mapper.bits = i;
+		storage = maths::Sqrt(mapper.value);
+	}
+}
+
 typedef ::testing::Types<maths::Decimal, float, double, int32_t, int64_t, uint32_t, uint64_t> numeric_types;
 template <typename T>
 class PositiveNumericTest : public ::testing::Test
