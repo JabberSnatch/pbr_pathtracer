@@ -3,7 +3,7 @@
 #define __YS_GLOBAL_DEFINITIONS_HPP__
 
 
-//#define YS_DECIMAL_IS_DOUBLE
+#define YS_DECIMAL_IS_DOUBLE
 
 
 #include "maths.h"

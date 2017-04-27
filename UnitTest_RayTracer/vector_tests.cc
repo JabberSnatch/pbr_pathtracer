@@ -131,7 +131,7 @@ TEST_F(Vec3fTest, Reflect)
 
 
 
-typedef ::testing::Types<maths::Norm3f, maths::Normal<maths::Decimal, 50>> normal_types;
+typedef ::testing::Types<maths::Norm3f> normal_types;
 
 template <typename T>
 class NormalTest : public ::testing::Test

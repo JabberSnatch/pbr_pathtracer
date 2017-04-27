@@ -9,6 +9,7 @@
 #define DECIMAL_SHIFT 24
 #endif
 
+
 TEST(DecimalType, ConstantsMasks)
 {
 	maths::DecimalBits full_mask =
@@ -28,10 +29,10 @@ TEST(DecimalType, Infinity)
 	auto mapper_b = maths::DecimalBitsMapper(infinity_b);
 	auto mapper_c = maths::DecimalBitsMapper(nan_c);
 
-	EXPECT_TRUE(maths::IsInf(mapper_a.value));
-	EXPECT_TRUE(maths::IsInf(mapper_b.value));
-	EXPECT_FALSE(maths::IsInf(mapper_c.value));
-	EXPECT_FALSE(maths::IsInf(not_infinity_d));
+	EXPECT_TRUE(crappy_legacy::maths::IsInf(mapper_a.value));
+	EXPECT_TRUE(crappy_legacy::maths::IsInf(mapper_b.value));
+	EXPECT_FALSE(crappy_legacy::maths::IsInf(mapper_c.value));
+	EXPECT_FALSE(crappy_legacy::maths::IsInf(not_infinity_d));
 }
 
 TEST(DecimalType, NaN)
@@ -45,10 +46,10 @@ TEST(DecimalType, NaN)
 	auto mapper_b = maths::DecimalBitsMapper(infinity_b);
 	auto mapper_c = maths::DecimalBitsMapper(nan_c);
 
-	EXPECT_FALSE(maths::IsNaN(mapper_a.value));
-	EXPECT_FALSE(maths::IsNaN(mapper_b.value));
-	EXPECT_TRUE(maths::IsNaN(mapper_c.value));
-	EXPECT_FALSE(maths::IsNaN(not_infinity_d));
+	EXPECT_FALSE(crappy_legacy::maths::IsNaN(mapper_a.value));
+	EXPECT_FALSE(crappy_legacy::maths::IsNaN(mapper_b.value));
+	EXPECT_TRUE(crappy_legacy::maths::IsNaN(mapper_c.value));
+	EXPECT_FALSE(crappy_legacy::maths::IsNaN(not_infinity_d));
 }
 
 TEST(DecimalType, IsExpectedType)
@@ -85,6 +86,14 @@ TEST(DecimalType, EpsilonValidation)
 	EXPECT_EQ(computed_delta, theoretical_delta);
 }
 
+TEST(DecimalType, Quadratic)
+{
+	maths::Decimal		A{ 5._d }, B{ 2._d }, C{ -3._d }, T0, T1;
+	EXPECT_TRUE(maths::Quadratic(A, B, C, T0, T1));
+	EXPECT_DECIMAL_EQ(T0, -1._d);
+	EXPECT_DECIMAL_EQ(T1, 0.6_d);
+}
+
 TEST(REDecimalTest, PrecisionVariable)
 {
 #if YS_REDECIMAL_HAS_PRECISE
@@ -93,13 +102,23 @@ TEST(REDecimalTest, PrecisionVariable)
 	for (int i = 0; i < 10000; ++i)
 	{
 		A *= B;
-		ASSERT_FALSE(maths::IsNaN(A.low_bound));
-		ASSERT_FALSE(maths::IsNaN(A.high_bound));
-		ASSERT_FALSE(maths::IsNaN(A.precise));
+		ASSERT_FALSE(std::isnan(A.low_bound));
+		ASSERT_FALSE(std::isnan(A.high_bound));
+		ASSERT_FALSE(std::isnan(A.precise));
 		ASSERT_TRUE(A.low_bound <= A.high_bound);
 		ASSERT_TRUE(A.low_bound <= A.precise && A.high_bound >= A.precise);
 	}
 #endif
+}
+
+TEST(REDecimalTest, Quadratic)
+{
+	maths::Decimal		A{ 5._d }, B{ 2._d }, C{ -3._d }, T0, T1;
+	maths::REDecimal	re_A{ A }, re_B{ B }, re_C{ C }, re_T0, re_T1;
+	EXPECT_TRUE(maths::Quadratic(re_A, re_B, re_C, re_T0, re_T1));
+	maths::Quadratic(A, B, C, T0, T1);
+	EXPECT_DECIMAL_EQ(T0, re_T0.value);
+	EXPECT_DECIMAL_EQ(T1, re_T1.value);
 }
 
 TEST(UtilityFunctions, Abs)
@@ -130,50 +149,10 @@ TEST(UtilityFunctions, Abs)
 TEST(SqrtTestFloat, Sqrt)
 {
 	maths::FloatBitsMapper mapper(0.f), root(0.f), check(0.f), sqr(0.f), sqrv(0.f);
-	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 100)
+	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 1000)
 	{
 		mapper.bits = i;
-		root.value = maths::Sqrt(mapper.value);
-		check.value = std::sqrt(mapper.value);
-		sqr.value = root.value * root.value;
-		sqrv.value = check.value * check.value;
-		if (root.bits != check.bits)
-		{
-			//EXPECT_LE(maths::Max(root.bits, check.bits) - maths::Min(root.bits, check.bits), 10u);
-			//EXPECT_LE(maths::Max(sqr.bits, sqrv.bits) - maths::Min(sqr.bits, sqrv.bits), 10u);
-		}
-	}
-}
-
-TEST(SqrtTestFloat, stdSqrtPerf)
-{
-	float storage = 0.f;
-	maths::FloatBitsMapper mapper(0.f);
-	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 100)
-	{
-		mapper.bits = i;
-		storage = std::sqrt(mapper.value);
-	}
-}
-
-TEST(SqrtTestFloat, mathsSqrtPerf)
-{
-	float storage = 0.f;
-	maths::FloatBitsMapper mapper(0.f);
-	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 100)
-	{
-		mapper.bits = i;
-		storage = maths::Sqrt(mapper.value);
-	}
-}
-
-TEST(SqrtTestDouble, Sqrt)
-{
-	maths::DoubleBitsMapper mapper(0.), root(0.), check(0.), sqr(0.), sqrv(0.);
-	for (uint64_t i = 0; i <= maths::FloatMeta<double>::exponent_mask; i += 1000000)
-	{
-		mapper.bits = i;
-		root.value = maths::Sqrt(mapper.value);
+		root.value = crappy_legacy::maths::Sqrt(mapper.value);
 		check.value = std::sqrt(mapper.value);
 		sqr.value = root.value * root.value;
 		sqrv.value = check.value * check.value;
@@ -185,25 +164,25 @@ TEST(SqrtTestDouble, Sqrt)
 	}
 }
 
-TEST(SqrtTestDouble, stdSqrtPerf)
+TEST(SqrtTestFloat, stdSqrtPerf)
 {
-	double storage = 0.;
-	maths::DoubleBitsMapper mapper(0.);
-	for (uint64_t i = 0; i <= maths::FloatMeta<double>::exponent_mask; i += 1000000)
+	float storage = 0.f;
+	maths::FloatBitsMapper mapper(0.f);
+	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 1000)
 	{
 		mapper.bits = i;
 		storage = std::sqrt(mapper.value);
 	}
 }
 
-TEST(SqrtTestDouble, mathsSqrtPerf)
+TEST(SqrtTestFloat, mathsSqrtPerf)
 {
-	double storage = 0.;
-	maths::DoubleBitsMapper mapper(0.);
-	for (uint32_t i = 0; i <= maths::FloatMeta<double>::exponent_mask; i += 1000000)
+	float storage = 0.f;
+	maths::FloatBitsMapper mapper(0.f);
+	for (uint32_t i = 0; i <= maths::FloatMeta<float>::exponent_mask; i += 1000)
 	{
 		mapper.bits = i;
-		storage = maths::Sqrt(mapper.value);
+		storage = crappy_legacy::maths::Sqrt(mapper.value);
 	}
 }
 
