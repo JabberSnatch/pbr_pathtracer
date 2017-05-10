@@ -10,8 +10,10 @@
 #include <atomic>
 #include <fstream>
 
-//#define VERSION_1
-#define VERSION_2
+#define VERSION_1
+//#define VERSION_2
+
+// NOTE: Remember to look into Relacy if things go dire with parallel execution.
 
 enum LogChannel { kLogGeneral = 0, kLogGeometry, kLogMemory, kLogChannelCount, kLogStdOut };
 enum LogLevel { kLogDebug = 0, kLogInfo, kLogWarning, kLogError, kLogLevelCount };
