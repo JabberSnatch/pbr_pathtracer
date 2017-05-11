@@ -22,6 +22,7 @@ void LogTests(uint32_t _thread_index)
 		globals::central_logger[_thread_index].Log(kLogMemory, kLogInfo, message);
 	}
 }
+/*
 void LogIntegrationTests(uint32_t _thread_index)
 {
 	globals::main_logger.thread_index = _thread_index;
@@ -31,24 +32,28 @@ void LogIntegrationTests(uint32_t _thread_index)
 		globals::main_logger.Log(tools::kChannelGeneral, tools::kLevelInfo, message);
 	}
 }
+*/
 
 int main()
 {
 	const size_t thread_count = 4;
 	
+#if 0
 	globals::main_logger.BindPath(tools::kChannelGeneral, "general.log");
-	if (1)
 	{
 		globals::main_logger.AllowMultipleThreads(thread_count);
 
 		std::thread threads[thread_count];
+		std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 		for (uint32_t i = 0; i < thread_count; ++i)
 			threads[i] = std::thread{ LogIntegrationTests, i };
 		for (uint32_t i = 0; i < thread_count; ++i)
 			threads[i].join();
+		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+
+		globals::main_logger.Log(tools::kChannelGeneral, tools::kLevelDebug, "total execution : " + std::to_string((end - start).count()));
 	}
-	
-	if (0)
+#endif
 	{
 		globals::central_logger.SetThreadCount(thread_count);
 
