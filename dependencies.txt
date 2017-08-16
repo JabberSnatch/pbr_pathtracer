@@ -1,2 +1,5 @@
 Assimp
 stb-image
+boost
+    boost/system
+    boost/filesystem
