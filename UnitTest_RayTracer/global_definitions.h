@@ -6,7 +6,7 @@
 #define YS_DECIMAL_IS_DOUBLE
 
 
-#include "maths.h"
+#include "maths/maths.h"
 
 #ifdef YS_DECIMAL_IS_DOUBLE
 #define ASSERT_DECIMAL_EQ ASSERT_DOUBLE_EQ

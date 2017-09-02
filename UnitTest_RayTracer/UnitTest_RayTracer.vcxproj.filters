@@ -24,6 +24,9 @@
     <ClCompile Include="maths_tests.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rng_tests.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="global_definitions.h">

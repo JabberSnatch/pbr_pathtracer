@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 
 #include "global_definitions.h"
-#include "redecimal.h"
+#include "maths/redecimal.h"
 
 #ifdef YS_DECIMAL_IS_DOUBLE
 #define DECIMAL_SHIFT 53
@@ -86,6 +86,7 @@ TEST(DecimalType, EpsilonValidation)
 	EXPECT_EQ(computed_delta, theoretical_delta);
 }
 
+/*
 TEST(DecimalType, Quadratic)
 {
 	maths::Decimal		A{ 5._d }, B{ 2._d }, C{ -3._d }, T0, T1;
@@ -93,6 +94,7 @@ TEST(DecimalType, Quadratic)
 	EXPECT_DECIMAL_EQ(T0, -1._d);
 	EXPECT_DECIMAL_EQ(T1, 0.6_d);
 }
+*/
 
 TEST(REDecimalTest, PrecisionVariable)
 {
@@ -111,6 +113,7 @@ TEST(REDecimalTest, PrecisionVariable)
 #endif
 }
 
+/*
 TEST(REDecimalTest, Quadratic)
 {
 	maths::Decimal		A{ 5._d }, B{ 2._d }, C{ -3._d }, T0, T1;
@@ -120,6 +123,7 @@ TEST(REDecimalTest, Quadratic)
 	EXPECT_DECIMAL_EQ(T0, re_T0.value);
 	EXPECT_DECIMAL_EQ(T1, re_T1.value);
 }
+*/
 
 TEST(UtilityFunctions, Abs)
 {

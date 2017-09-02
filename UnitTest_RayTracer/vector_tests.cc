@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "vector.h"
+#include "maths/vector.h"
 #include "global_definitions.h"
 
 
@@ -57,14 +57,14 @@ TYPED_TEST(FloatVectorTest, VectorDivision)
 
 TYPED_TEST(FloatVectorTest, VectorMin)
 {
-	tested_type min = maths::vector::Min(test_vector, vector);
+	tested_type min = maths::Min(test_vector, vector);
 	for (uint32_t i = 0; i < min.size; ++i)
 		EXPECT_DECIMAL_EQ(min[i], test_vector[i]);
 }
 
 TYPED_TEST(FloatVectorTest, VectorMax)
 {
-	auto max = maths::vector::Max(test_vector, vector);
+	auto max = maths::Max(test_vector, vector);
 	for (uint32_t i = 0; i < max.size; ++i)
 		EXPECT_DECIMAL_EQ(max[i], vector[i]);
 }
@@ -79,8 +79,8 @@ TYPED_TEST(FloatVectorTest, EqualOp)
 
 TYPED_TEST(FloatVectorTest, MinMaxDimension)
 {
-	EXPECT_EQ(maths::vector::MaximumDimension(vector), vector.size - 1u);
-	EXPECT_EQ(maths::vector::MinimumDimension(vector), 0u);
+	EXPECT_EQ(maths::MaximumDimension(vector), vector.size - 1u);
+	EXPECT_EQ(maths::MinimumDimension(vector), 0u);
 }
 
 
@@ -102,31 +102,31 @@ protected:
 
 TEST_F(Vec3fTest, DotProduct)
 {
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(x, y), 0._d);
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(x, x), 1._d);
-	EXPECT_TRUE(maths::vector::Dot(vector, x) > 0._d);
+	EXPECT_DECIMAL_EQ(maths::Dot(x, y), 0._d);
+	EXPECT_DECIMAL_EQ(maths::Dot(x, x), 1._d);
+	EXPECT_TRUE(maths::Dot(vector, x) > 0._d);
 }
 
 TEST_F(Vec3fTest, CrossProduct)
 {
-	EXPECT_TRUE(maths::vector::Cross(x, y) == z);
-	EXPECT_DECIMAL_EQ(maths::vector::SqrLength(maths::vector::Cross(x, y)), 1._d);
+	EXPECT_TRUE(maths::Cross(x, y) == z);
+	EXPECT_DECIMAL_EQ(maths::SqrLength(maths::Cross(x, y)), 1._d);
 
-	maths::Vec3f	cross{ maths::vector::Cross(vector, x) };
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(cross, vector), 0._d);
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(cross, x), 0._d);
+	maths::Vec3f	cross{ maths::Cross(vector, x) };
+	EXPECT_DECIMAL_EQ(maths::Dot(cross, vector), 0._d);
+	EXPECT_DECIMAL_EQ(maths::Dot(cross, x), 0._d);
 
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(maths::vector::Cross(y, x), z), -1._d);
+	EXPECT_DECIMAL_EQ(maths::Dot(maths::Cross(y, x), z), -1._d);
 }
 
 TEST_F(Vec3fTest, Reflect)
 {
-	maths::Vec3f	direction = maths::vector::Normalized(vector);
-	maths::Vec3f	reflected = maths::vector::Reflect(direction, x);
+	maths::Vec3f	direction = maths::Normalized(vector);
+	maths::Vec3f	reflected = maths::Reflect(direction, x);
 
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(direction, x), maths::vector::Dot(reflected, x));
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(direction, y), -maths::vector::Dot(reflected, y));
-	EXPECT_DECIMAL_EQ(maths::vector::Dot(direction, z), -maths::vector::Dot(reflected, z));
+	EXPECT_DECIMAL_EQ(maths::Dot(direction, x), maths::Dot(reflected, x));
+	EXPECT_DECIMAL_EQ(maths::Dot(direction, y), -maths::Dot(reflected, y));
+	EXPECT_DECIMAL_EQ(maths::Dot(direction, z), -maths::Dot(reflected, z));
 }
 
 
@@ -161,23 +161,23 @@ TYPED_TEST_CASE(NormalTest, normal_types);
 
 TYPED_TEST(NormalTest, Normalization)
 {
-	EXPECT_GT(maths::normal::Length(normalA), 1._d);
-	auto	normalized = maths::normal::Normalized(normalA);
-	EXPECT_DECIMAL_EQ(maths::normal::Length(normalized), 1._d);
+	EXPECT_GT(maths::Length(normalA), 1._d);
+	auto	normalized = maths::Normalized(normalA);
+	EXPECT_DECIMAL_EQ(maths::Length(normalized), 1._d);
 }
 
 TYPED_TEST(NormalTest, Directions)
 {
-	auto	x_facing = maths::normal::FaceForward(normalA, x);
-	auto	normalized = maths::normal::Normalized(normalA);
-	auto	z_facing = maths::normal::FaceForward(normalized, z);
-	auto	minusZ_facing = maths::normal::FaceForward(normalized, -z);
+	auto	x_facing = maths::FaceForward(normalA, x);
+	auto	normalized = maths::Normalized(normalA);
+	auto	z_facing = maths::FaceForward(normalized, z);
+	auto	minusZ_facing = maths::FaceForward(normalized, -z);
 
-	EXPECT_GT(maths::normal::Dot(x_facing, x), 0._d);
-	EXPECT_GT(maths::normal::Dot(x_facing, normalA), 0._d);
+	EXPECT_GT(maths::Dot(x_facing, x), 0._d);
+	EXPECT_GT(maths::Dot(x_facing, normalA), 0._d);
 
-	EXPECT_DECIMAL_EQ(maths::normal::Dot(z_facing, minusZ_facing), -1._d);
-	EXPECT_GT(maths::normal::Dot(z_facing, z), 0._d);
-	EXPECT_GT(maths::normal::Dot(z_facing, normalized), 0._d);
-	EXPECT_LT(maths::normal::Dot(minusZ_facing, normalized), 0._d);
+	EXPECT_DECIMAL_EQ(maths::Dot(z_facing, minusZ_facing), -1._d);
+	EXPECT_GT(maths::Dot(z_facing, z), 0._d);
+	EXPECT_GT(maths::Dot(z_facing, normalized), 0._d);
+	EXPECT_LT(maths::Dot(minusZ_facing, normalized), 0._d);
 }
