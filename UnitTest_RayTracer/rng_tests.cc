@@ -23,13 +23,13 @@ TEST(RandomNumberGeneration, ConformanceTest)
 TEST(RandomNumberGeneration, InvXorshift)
 {
 	const uint32_t	ground_truth{ pcg_extras::unxorshift(trunc_seed, 32u, 10u) };
-	const uint32_t	subject{ core::RNG::inv_xorshift(trunc_seed, 10u) };
+	const uint32_t	subject{ core::RNG::InvXorshift(trunc_seed, 10u) };
 	EXPECT_EQ(subject, ground_truth);
 }
 
 TEST(RandomNumberGeneration, RotateRight)
 {
 	const uint32_t	ground_truth{ pcg_extras::rotr(trunc_seed, 10u) };
-	const uint32_t	subject{ core::RNG::rotate_right(trunc_seed, 10u) };
+	const uint32_t	subject{ core::RNG::RotateRight(trunc_seed, 10u) };
 	EXPECT_EQ(subject, ground_truth);
 }

@@ -1,5 +1,7 @@
 Build/*
 Intermediate/*
+*/Build/*
+*/Intermediate/*
 *.png
 *.db
 *.opendb
@@ -10,3 +12,6 @@ Intermediate/*
 Book1_Final
 *.swp
 lib/
+*.cflags*
+*#*#
+*.#*
