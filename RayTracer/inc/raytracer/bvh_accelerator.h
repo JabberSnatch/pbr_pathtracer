@@ -26,8 +26,10 @@ class BvhAccelerator
 public:
 	using PrimitiveArray_t = std::vector<Primitive const*>;
 
+	BvhAccelerator();
 	BvhAccelerator(PrimitiveArray_t const &_primitives,
 				   uint32_t _node_max_size);
+	// TODO: implement proper copy assignment and ctor (at least for empty bvhs)
 	~BvhAccelerator();
 
 	

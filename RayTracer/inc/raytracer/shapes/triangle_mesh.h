@@ -5,11 +5,10 @@
 #include <string>
 #include <vector>
 
-#include "core/memory_region.h"
 #include "maths/maths.h"
 #include "maths/bounds.h"
 #include "raytracer/shape.h"
-#include "raytracer/bvh_accelerator.h"
+#include "raytracer/triangle_mesh_data.h"
 
 
 namespace core {
@@ -19,9 +18,8 @@ class MemoryRegion;
 
 namespace raytracer {
 
-class TriangleMeshData;
 
-
+template <typename InstancingPolicy>
 class TriangleMesh : public Shape
 {
 private:
@@ -29,8 +27,7 @@ private:
 public:
 	TriangleMesh(maths::Transform const &_world_transform,
 				 bool _flip_normals,
-				 TriangleMeshData const &_data,
-				 core::MemoryRegion &_mem_region);
+				 TriangleMeshData const &_data);
 	virtual bool Intersect(maths::Ray const &_ray,
 						   maths::Decimal &_tHit,
 						   SurfaceInteraction &_hit_info) const override;
@@ -40,25 +37,20 @@ public:
 	virtual maths::Bounds3f	ObjectBounds() const override;
 	virtual maths::Bounds3f	WorldBounds() const override;
 private:
-	static constexpr uint32_t kBvhNodeSize = 10u;
-	static TriangleContainer_t MakeTriangles_(
-		maths::Transform const &_world_transform,
-		bool _flip_normals,
-		TriangleMeshData const &_data,
-		core::MemoryRegion &_mem_region);
-	static BvhAccelerator::PrimitiveArray_t MakePrimitives_(TriangleContainer_t const &_triangles,
-															core::MemoryRegion &_mem_region);
-private:
-	maths::Bounds3f		world_bounds_;
-	TriangleContainer_t	triangles_;
-	BvhAccelerator		bvh_;
-	core::MemoryRegion	mem_region_;
+	TriangleMeshData const	&data_;
 };
 
+// TODO: output should be TriangleMeshRaw
+#if 0
 TriangleMesh	*ReadTriangleMeshFromFile(std::string const &_path,
 										  maths::Transform const &_world_transform,
 										  bool _flip_normals,
 										  core::MemoryRegion &_mem_region);
+TriangleMeshRawData	*ReadTriangleMeshFromFile(std::string const &_path,
+											  maths::Transform const &_world_transform,
+											  bool _flip_normals,
+											  core::MemoryRegion &_mem_region);
+#endif
 
 } // namespace raytracer
 

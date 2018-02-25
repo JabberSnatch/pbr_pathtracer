@@ -22,13 +22,11 @@
 #include "raytracer/shapes/sphere.h"
 #include "raytracer/shapes/triangle.h"
 #include "raytracer/shapes/triangle_mesh.h"
+#include "raytracer/triangle_mesh_data.h"
 
 
 namespace api {
 
-raytracer::Camera *MakeCamera(api::ResourceContext &_context, api::ParamSet const &_params);
-
-raytracer::Film *MakeFilm(api::ResourceContext &_context, api::ParamSet const &_params);
 
 raytracer::Shape* MakeSphere(api::ResourceContext &_context, api::ParamSet const &_params);
 raytracer::Shape* MakeTriangleMesh(api::ResourceContext &_context, api::ParamSet const &_params);
@@ -48,6 +46,42 @@ raytracer::Integrator* MakeDirectLightingIntegrator(api::ResourceContext &_conte
 raytracer::Light* MakeAreaLight(api::ResourceContext &_context,
 								api::ParamSet const &_params);
 
+
+raytracer::Camera*
+MakeCamera(api::ResourceContext &_context, api::ParamSet const &_params)
+{
+	maths::Point3f const	position = static_cast<maths::Point3f>(
+		_params.FindFloat<3>("position", { 0._d, 0._d, 0._d })
+		);
+	maths::Point3f const	lookat = static_cast<maths::Point3f>(
+		_params.FindFloat<3>("lookat", maths::Vec3f(position) + maths::Vec3f{ 0._d, 1._d, 0._d })
+		);
+	maths::Vec3f const		up = _params.FindFloat<3>("up", { 0._d, 0._d, 1._d });
+	maths::Decimal const	fov = _params.FindFloat("fov", 60._d);
+	//
+	ResourceContext::ObjectDescriptor const &film_desc =
+		_context.GetAnyDescOfType(ResourceContext::ObjectType::kFilm);
+	return new (_context.mem_region()) raytracer::Camera{
+		position, lookat, up, fov, _context.Fetch<raytracer::Film>(film_desc.unique_id) };
+}
+
+
+raytracer::Film*
+MakeFilm(api::ResourceContext &_context, api::ParamSet const &_params)
+{
+	maths::Vec2i const		resolution = _params.FindInt<2>("resolution", { 800, 600 });
+	maths::Decimal const	side = _params.FindFloat("side", .036_d);
+
+	return new (_context.mem_region()) raytracer::Film{ resolution.x, resolution.y, side };
+}
+
+
+// TODO: implementation
+raytracer::TriangleMeshRawData*
+MakeTriangleMeshRawData(api::ResourceContext &_context, api::ParamSet const &_params)
+{
+	return nullptr;
+}
 
 
 template <typename CallbackType>
@@ -124,34 +158,6 @@ LookupLightFunc(std::string const &_id)
 }
 
 
-raytracer::Camera*
-MakeCamera(api::ResourceContext &_context, api::ParamSet const &_params)
-{
-	maths::Point3f const	position = static_cast<maths::Point3f>(
-		_params.FindFloat<3>("position", { 0._d, 0._d, 0._d })
-		);
-	maths::Point3f const	lookat = static_cast<maths::Point3f>(
-		_params.FindFloat<3>("lookat", maths::Vec3f(position) + maths::Vec3f{ 0._d, 1._d, 0._d })
-		);
-	maths::Vec3f const		up = _params.FindFloat<3>("up", { 0._d, 0._d, 1._d });
-	maths::Decimal const	fov = _params.FindFloat("fov", 60._d);
-	//
-	ResourceContext::ObjectDescriptor const &film_desc =
-		_context.GetAnyDescOfType(ResourceContext::ObjectType::kFilm);
-	return new (_context.mem_region()) raytracer::Camera{
-		position, lookat, up, fov, _context.Fetch<raytracer::Film>(film_desc.unique_id) };
-}
-
-raytracer::Film*
-MakeFilm(api::ResourceContext &_context, api::ParamSet const &_params)
-{
-	maths::Vec2i const		resolution = _params.FindInt<2>("resolution", { 800, 600 });
-	maths::Decimal const	side = _params.FindFloat("side", .036_d);
-
-	return new (_context.mem_region()) raytracer::Film{ resolution.x, resolution.y, side };
-}
-
-
 raytracer::Shape*
 MakeSphere(api::ResourceContext &_context, api::ParamSet const &_params)
 {
@@ -184,10 +190,83 @@ MakeTriangleMesh(api::ResourceContext &_context, api::ParamSet const &_params)
 
 		if (boost::filesystem::exists(path))
 		{
+			using ResourceContext::ObjectDescriptor;
+			using ResourceContext::ParamSet;
+			// if rawdata descriptor is missing, push it
+			if (!_context.IsUniqueIdFree(path_string))
+			{
+				YS_ASSERT(_context.GetDesc(path_string).type_id ==
+						  ResourceContext::ObjectType::kTriangleMeshRawData);
+			}
+			else
+			{
+				ParamSet &params = new (_context.mem_region()) ParamSet();
+				params.PushString("path", path_string);
+				_context.PushDescriptor(path_string,
+										ResourceContext::ObjectType::kTriangleMeshRawData,
+										params);
+			}
+			// pick instancing policy
+				// count trianglemeshes sharing the same path_string
+				// 1 => transform, n => instancing
+			ResourceContext::ObjectDescriptorContainer_t const shape_descs =
+				_context.GetAllDescsOfType(ResourceContext::ObjectType::kShape);
+			int const instance_count = std::count_if(
+				shape_descs.cbegin(), shape_descs.cend(),
+				[&path_string](ObjectDescriptor const *_desc) {
+					return _desc->param_set.FindString("path", "") == path_string;
+				});
+			YS_ASSERT(instance_count != 0u);
+			// switch on instancing policy class
+			// case transform
+				// fetch rawdata
+				// build TriangleMeshData, and then TriangleMesh
+			// case sharedsource
+				// try to find a preexisting TriangleMesh that shares the same rawdata
+				// if it exists
+					// build new TriangleMesh using found "sibling"'s TriangleMeshData
+				// else
+					// fallback on fetching rawdata, then building TriangleMeshData and TriangleMesh
+			if (instance_count == 1u) // transform
+			{
+				TriangleMeshRawData const &raw_data =
+					_context.Fetch<TriangleMeshRawData>(path_string);
+				TriangleMeshData const *mesh_data =
+					new (_context.mem_region()) TriangleMeshData{
+					world_transform,
+					flip_normals,
+					raw_data,
+					InstancingPolicyClass::Transformed{} };
+				result = new (_context.mem_region()) TriangleMesh{ *mesh_data };
+			}
+			else // sharedsource
+			{
+				using ResourceContext::ObjectDescriptorContainer_t;
+				ObjectDescriptorContainer_t::const_iterator const odcit = std::find_if(
+					shape_descs.cbegin(), shape_descs.cend(),
+					[&path_string, &_context](ObjectDescriptor const *_desc) {
+						std::string const path_param = desc->param_set.FindString("path", "");
+						return (path_param == path_string)
+							&& (_context.HasInstance(desc->unique_id));
+					});
+				if (odcit != shape_descs.cend())
+				{
+					// TODO
+					ObjectDescriptor const &desc = **odcit;
+					TriangleMesh const &sibling =
+						_context.GetInstance<TriangleMesh>(desc.unique_id);
+				}
+				else
+				{
+					// TODO
+				}
+			}
+			/*
 			result = raytracer::ReadTriangleMeshFromFile(path.generic_string(),
 														 world_transform,
 														 flip_normals,
 														 _context.mem_region());
+			 */
 			if (!result)
 			{
 				LOG_ERROR(tools::kChannelGeneral,

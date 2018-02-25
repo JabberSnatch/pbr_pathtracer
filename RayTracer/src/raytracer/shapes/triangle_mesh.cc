@@ -8,110 +8,122 @@
 
 #include "maths/ray.h"
 #include "maths/transform.h"
-#include "raytracer/primitive.h"
 #include "raytracer/shapes/triangle.h"
-#include "raytracer/triangle_mesh_data.h"
+#include "raytracer/surface_interaction.h"
 
 
 namespace raytracer {
 
 
-TriangleMesh::TriangleMesh(maths::Transform const &_world_transform,
-						   bool _flip_normals,
-						   TriangleMeshData const &_data,
-						   core::MemoryRegion &_mem_region) :
+template class TriangleMesh<InstancingPolicyClass::SharedSource>;
+template class TriangleMesh<InstancingPolicyClass::Transformed>;
+
+
+template <typename InstancingPolicy>
+TriangleMesh<InstancingPolicy>::TriangleMesh(maths::Transform const &_world_transform,
+											 bool _flip_normals,
+											 TriangleMeshData const &_data) :
 	Shape(_world_transform, _flip_normals),
-	world_bounds_(_data.world_bounds),
-	triangles_(MakeTriangles_(_world_transform, _flip_normals, _data, _mem_region)),
-	bvh_(MakePrimitives_(triangles_, _mem_region), kBvhNodeSize)
+	data_{ _data }
 {}
 
 
+template <>
 bool
-TriangleMesh::Intersect(maths::Ray const &_ray,
-						maths::Decimal &_tHit,
-						SurfaceInteraction &_hit_info) const
+TriangleMesh<InstancingPolicyClass::Transformed>::Intersect(maths::Ray const &_ray,
+															maths::Decimal &_tHit,
+															SurfaceInteraction &_hit_info) const
 {
 	maths::Ray bvh_ray{ _ray };
-	bool const result = bvh_.Intersect(bvh_ray, _hit_info);
+	bool const result = data_.bvh().Intersect(bvh_ray, _hit_info);
 	_tHit = (result) ? bvh_ray.tMax : _tHit;
 	return result;
 }
 
-
+template <>
 bool
-TriangleMesh::DoesIntersect(maths::Ray const &_ray) const
+TriangleMesh<InstancingPolicyClass::SharedSource>::Intersect(maths::Ray const &_ray,
+															 maths::Decimal &_tHit,
+															 SurfaceInteraction &_hit_info) const
 {
-	return bvh_.DoesIntersect(_ray);
+	maths::Ray bvh_ray{ world_transform(_ray, maths::Transform::kInverse) };
+	bool const result = data_.bvh().Intersect(bvh_ray, _hit_info);
+	if (result)
+	{
+		_tHit = bvh_ray.tMax;
+		_hit_info = world_transform(_hit_info, maths::Transform::kForward);
+	}
+	return result;
 }
 
 
-maths::Decimal
-TriangleMesh::Area() const
+template <>
+bool
+TriangleMesh<InstancingPolicyClass::Transformed>::DoesIntersect(maths::Ray const &_ray) const
 {
-	return std::accumulate(triangles_.cbegin(), triangles_.cend(), 0._d,
+	return data_.bvh().DoesIntersect(_ray);
+}
+
+template <>
+bool
+TriangleMesh<InstancingPolicyClass::SharedSource>::DoesIntersect(maths::Ray const &_ray) const
+{
+	return data_.bvh().DoesIntersect(world_transform(_ray, maths::Transform::kInverse));
+}
+
+
+template <typename InstancingPolicy>
+maths::Decimal
+TriangleMesh<InstancingPolicy>::Area() const
+{
+	TriangleMeshData::TriangleContainer_t const &triangles = data_.triangles();
+	return std::accumulate(triangles.cbegin(), triangles.cend(), 0._d,
 						   [](maths::Decimal const &_acc, Triangle const* const _triangle) {
 		return _acc + _triangle->Area();
 	});
 }
 
 
+template <typename InstancingPolicy>
 Shape::SurfacePoint
-TriangleMesh::SampleSurface(maths::Vec2f const &_ksi) const
+TriangleMesh<InstancingPolicy>::SampleSurface(maths::Vec2f const &_ksi) const
 {
 	YS_ASSERT(false);
 	return Shape::SurfacePoint();
 }
 
 
+template <>
 maths::Bounds3f
-TriangleMesh::ObjectBounds() const
+TriangleMesh<InstancingPolicyClass::Transformed>::ObjectBounds() const
 {
-	return world_transform(world_bounds_, maths::Transform::kInverse);
+	return world_transform(data_.bounds(), maths::Transform::kInverse);
 }
 
-
+template <>
 maths::Bounds3f
-TriangleMesh::WorldBounds() const
+TriangleMesh<InstancingPolicyClass::SharedSource>::ObjectBounds() const
 {
-	return world_bounds_;
+	return data_.bounds();
 }
 
 
-TriangleMesh::TriangleContainer_t
-TriangleMesh::MakeTriangles_(maths::Transform const &_world_transform,
-							 bool _flip_normals,
-							 TriangleMeshData const &_data,
-							 core::MemoryRegion &_mem_region)
+template <>
+maths::Bounds3f
+TriangleMesh<InstancingPolicyClass::Transformed>::WorldBounds() const
 {
-	TriangleContainer_t result{};
-	result.reserve(_data.triangle_count);
-	for (int32_t face_index = 0; face_index < _data.triangle_count; ++face_index)
-	{
-		result.emplace_back(new (_mem_region)
-							raytracer::Triangle(_world_transform,
-												_flip_normals,
-												_data,
-												face_index));
-	}
-	return result;
+	return data_.bounds();
+}
+
+template <>
+maths::Bounds3f
+TriangleMesh<InstancingPolicyClass::SharedSource>::WorldBounds() const
+{
+	return world_transform(data_.bounds(), maths::Transform::kForward);
 }
 
 
-BvhAccelerator::PrimitiveArray_t
-TriangleMesh::MakePrimitives_(TriangleContainer_t const &_triangles,
-							  core::MemoryRegion &_mem_region)
-{
-	BvhAccelerator::PrimitiveArray_t result{};
-	result.reserve(_triangles.size());
-	std::transform(_triangles.cbegin(), _triangles.cend(),
-				   std::back_inserter(result), [&_mem_region] (Triangle const* const _triangle) {
-		return new (_mem_region) GeometryPrimitive(*static_cast<Shape const*>(_triangle));
-	});
-	return result;
-}
-
-// TODO: implement instancing
+#if 0
 TriangleMesh*
 ReadTriangleMeshFromFile(std::string const &_path,
 						 maths::Transform const &_world_transform,
@@ -197,7 +209,7 @@ ReadTriangleMeshFromFile(std::string const &_path,
 			((load_normals) ? " Normals provided by file." : "");
 		LOG(tools::kChannelGeneral, tools::kLevelInfo, info_message);
 #endif
-		
+
 		TriangleMeshData const* const mesh_data = new (_mem_region)
 			TriangleMeshData(_world_transform,
 							 out_triangle_count,
@@ -215,6 +227,7 @@ ReadTriangleMeshFromFile(std::string const &_path,
 	}
 	return result;
 }
+#endif
 
 
 } // namespace raytracer
