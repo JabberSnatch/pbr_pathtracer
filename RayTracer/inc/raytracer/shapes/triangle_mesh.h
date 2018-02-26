@@ -28,6 +28,10 @@ public:
 	TriangleMesh(maths::Transform const &_world_transform,
 				 bool _flip_normals,
 				 TriangleMeshData const &_data);
+	template <typename OtherIP>
+	TriangleMesh(maths::Transform const &_world_transform,
+				 bool _flip_normals,
+				 TriangleMesh<OtherIP> const &_sibling_instance);
 	virtual bool Intersect(maths::Ray const &_ray,
 						   maths::Decimal &_tHit,
 						   SurfaceInteraction &_hit_info) const override;

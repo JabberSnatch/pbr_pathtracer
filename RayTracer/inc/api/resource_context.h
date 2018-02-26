@@ -43,7 +43,7 @@ public:
 		std::string const	unique_id;
 		ObjectType const	type_id;
 		ParamSet const		&param_set;
-		std::string const	subtype_id;
+		std::string const	subtype_id; // TODO: implement type checking for subtypes
 	};
 	using ObjectDescriptorContainer_t = std::vector<ObjectDescriptor const *>;
 private:

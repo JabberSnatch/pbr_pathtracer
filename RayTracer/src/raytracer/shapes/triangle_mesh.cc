@@ -28,6 +28,16 @@ TriangleMesh<InstancingPolicy>::TriangleMesh(maths::Transform const &_world_tran
 {}
 
 
+template <typename InstancingPolicy>
+template <typename OtherIP>
+TriangleMesh<InstancingPolicy>::TriangleMesh(maths::Transform const &_world_transform,
+											 bool _flip_normals,
+											 TriangleMesh<OtherIP> const &_sibling_instance) :
+	Shape(_world_transform, _flip_normals),
+	data_{ _data }
+{}
+
+
 template <>
 bool
 TriangleMesh<InstancingPolicyClass::Transformed>::Intersect(maths::Ray const &_ray,
