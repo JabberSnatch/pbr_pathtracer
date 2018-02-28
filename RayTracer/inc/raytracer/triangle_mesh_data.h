@@ -48,7 +48,8 @@ public:
 // TODO: move back to triangle_mesh.h from here to the end of namespace
 struct InstancingPolicyClass
 {
-	struct SharedSource;
+	struct SharedSource
+	{};
 	struct Transformed
 	{
 		static TriangleMeshRawData const &GetRawData(TriangleMeshRawData const &_base,

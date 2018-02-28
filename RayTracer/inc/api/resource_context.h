@@ -70,7 +70,7 @@ public:
 	ObjectDescriptor const &GetDesc(std::string const &_unique_id) const;
 	template <typename T> T& Fetch(std::string const &_unique_id);
 	bool HasInstance(std::string const &_unique_id) const;
-	template <typename T> inline T const &GetInstance(std::string const &_unique_id) const
+	template <typename T> inline T const &GetInstance(std::string const &_unique_id) const;
 	void SetWorkdir(std::string const &_workdir);
 	std::string const	&workdir() const;
 	core::MemoryRegion	&mem_region();

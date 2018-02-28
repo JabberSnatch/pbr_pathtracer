@@ -55,6 +55,12 @@ ResourceContext::GetType<raytracer::Integrator>()
 {
 	return ObjectType::kIntegrator;
 }
+template <>
+constexpr ResourceContext::ObjectType
+ResourceContext::GetType<raytracer::TriangleMeshRawData>()
+{
+	return ObjectType::kTriangleMeshRawData;
+}
 
 
 ResourceContext::ResourceContext(std::string const &_workdir) :
@@ -129,7 +135,7 @@ ResourceContext::GetAllDescsOfType(ObjectType const _type) const
 }
 
 
-ObjectDescriptor const &
+ResourceContext::ObjectDescriptor const &
 ResourceContext::GetDesc(std::string const &_unique_id) const
 {
 	ObjectDescriptorContainer_t::const_iterator odcit = std::find_if(
@@ -138,7 +144,7 @@ ResourceContext::GetDesc(std::string const &_unique_id) const
 	{
 		return _object_desc->unique_id == _unique_id;
 	});
-	if (odcit == object_descriptors_cend())
+	if (odcit == object_descriptors_.cend())
 	{
 		LOG_ERROR(tools::kChannelGeneral, "No descriptor found for id " + _unique_id);
 		YS_ASSERT(false);
@@ -218,18 +224,21 @@ ResourceContext::Fetch<raytracer::Sampler>(std::string const &_unique_id);
 template
 raytracer::Integrator&
 ResourceContext::Fetch<raytracer::Integrator>(std::string const &_unique_id);
+template
+raytracer::TriangleMeshRawData&
+ResourceContext::Fetch<raytracer::TriangleMeshRawData>(std::string const &_unique_id);
 
 
 bool
 ResourceContext::HasInstance(std::string const &_unique_id) const
 {
-	int const count = std::count_if(
+	uint32_t const count = boost::numeric_cast<uint32_t>(std::count_if(
 		object_instances_.cbegin(), object_instances_.cend(),
 		[&_unique_id](ObjectInstance const &_instance) {
 			return *(_instance.unique_id) == _unique_id;
-		});
-	YS_ASSERT(count <= 1);
-	return count == 1;
+		}));
+	YS_ASSERT(count <= 1u);
+	return (count == 1u);
 }
 
 
@@ -335,6 +344,12 @@ ResourceContext::MakeObject_(ObjectDescriptor const &_object_desc)
 {
 	MakeIntegratorCallback_t const &callback = LookupIntegratorFunc(_object_desc.subtype_id);
 	return callback(*this, _object_desc.param_set);
+}
+template <>
+raytracer::TriangleMeshRawData*
+ResourceContext::MakeObject_(ObjectDescriptor const &_object_desc)
+{
+	return MakeTriangleMeshRawData(*this, _object_desc.param_set);
 }
 
 

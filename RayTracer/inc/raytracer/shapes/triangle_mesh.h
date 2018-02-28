@@ -28,10 +28,9 @@ public:
 	TriangleMesh(maths::Transform const &_world_transform,
 				 bool _flip_normals,
 				 TriangleMeshData const &_data);
-	template <typename OtherIP>
 	TriangleMesh(maths::Transform const &_world_transform,
 				 bool _flip_normals,
-				 TriangleMesh<OtherIP> const &_sibling_instance);
+				 TriangleMesh const &_sibling_instance);
 	virtual bool Intersect(maths::Ray const &_ray,
 						   maths::Decimal &_tHit,
 						   SurfaceInteraction &_hit_info) const override;
@@ -44,17 +43,6 @@ private:
 	TriangleMeshData const	&data_;
 };
 
-// TODO: output should be TriangleMeshRaw
-#if 0
-TriangleMesh	*ReadTriangleMeshFromFile(std::string const &_path,
-										  maths::Transform const &_world_transform,
-										  bool _flip_normals,
-										  core::MemoryRegion &_mem_region);
-TriangleMeshRawData	*ReadTriangleMeshFromFile(std::string const &_path,
-											  maths::Transform const &_world_transform,
-											  bool _flip_normals,
-											  core::MemoryRegion &_mem_region);
-#endif
 
 } // namespace raytracer
 

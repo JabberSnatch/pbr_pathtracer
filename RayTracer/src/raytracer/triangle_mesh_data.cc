@@ -33,9 +33,9 @@ TriangleMeshRawData::TriangleMeshRawData(int32_t _triangle_count,
 	YS_ASSERT(static_cast<size_t>(3 * triangle_count) == indices.size());
 	if(!vertices.empty())
 	{
-		YS_ASSERT(vertices.size() == normals.size());
-		YS_ASSERT(vertices.size() == tangents.size());
-		YS_ASSERT(vertices.size() == uvs.size());
+		YS_ASSERT(normals.empty() || vertices.size() == normals.size());
+		YS_ASSERT(tangents.empty() || vertices.size() == tangents.size());
+		YS_ASSERT(uvs.empty() || vertices.size() == uvs.size());
 	}
 	else
 	{

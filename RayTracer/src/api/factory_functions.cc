@@ -79,17 +79,19 @@ MakeFilm(api::ResourceContext &_context, api::ParamSet const &_params)
 }
 
 
-// TODO: implementation
 raytracer::TriangleMeshRawData*
 MakeTriangleMeshRawData(api::ResourceContext &_context, api::ParamSet const &_params)
 {
+	// TODO: compare this process execution time agains bvh construction
+	std::string const path_string = _params.FindString("path", "");
+
 	raytracer::TriangleMeshRawData* result = nullptr;
 	uint32_t const		load_flags =
 		aiProcess_Triangulate |
 		aiProcess_PreTransformVertices |
 		aiProcess_JoinIdenticalVertices;
 	Assimp::Importer	importer;
-	aiScene const		*scene = importer.ReadFile(_path.c_str(), load_flags);
+	aiScene const		*scene = importer.ReadFile(path_string.c_str(), load_flags);
 	if (scene != nullptr)
 	{
 		uint32_t const		mesh_count = scene->mNumMeshes;
@@ -157,27 +159,19 @@ MakeTriangleMeshRawData(api::ResourceContext &_context, api::ParamSet const &_pa
 
 #ifndef YS_NO_LOGS
 		std::string	const	info_message =
-			"Loading " + std::to_string(mesh_count) + " submesh from " + _path + ". " +
+			"Loading " + std::to_string(mesh_count) + " submesh from " + path_string + ". " +
 			std::to_string(out_triangle_count) + " total triangles." +
 			((load_normals) ? " Normals provided by file." : "");
 		LOG(tools::kChannelGeneral, tools::kLevelInfo, info_message);
 #endif
 
-		// TODO
-		TriangleMeshData const* const mesh_data = new (_mem_region)
-			TriangleMeshData(_world_transform,
-							 out_triangle_count,
-							 out_indices,
-							 out_vertices,
-							 (load_normals ? &out_normals : nullptr));
-		result = new (_mem_region) TriangleMesh(_world_transform,
-												_flip_normals,
-												*mesh_data,
-												_mem_region);
+		result = new (_context.mem_region()) raytracer::TriangleMeshRawData{
+			out_triangle_count, out_indices, out_vertices,
+			(load_normals ? &out_normals : nullptr) };
 	}
 	else
 	{
-		LOG_WARNING(tools::kChannelGeneral, "could not load file " + _path);
+		LOG_WARNING(tools::kChannelGeneral, "could not load file " + path_string);
 	}
 	return result;
 }
@@ -289,8 +283,6 @@ MakeTriangleMesh(api::ResourceContext &_context, api::ParamSet const &_params)
 
 		if (boost::filesystem::exists(path))
 		{
-			using ResourceContext::ObjectDescriptor;
-			using ResourceContext::ParamSet;
 			// if rawdata descriptor is missing, push it
 			if (!_context.IsUniqueIdFree(path_string))
 			{
@@ -299,22 +291,22 @@ MakeTriangleMesh(api::ResourceContext &_context, api::ParamSet const &_params)
 			}
 			else
 			{
-				ParamSet &params = new (_context.mem_region()) ParamSet();
-				params.PushString("path", path_string);
+				ParamSet *const params = new (_context.mem_region()) ParamSet();
+				params->PushString("path", path_string);
 				_context.PushDescriptor(path_string,
 										ResourceContext::ObjectType::kTriangleMeshRawData,
-										params);
+										*params);
 			}
 			// pick instancing policy
 				// count trianglemeshes sharing the same path_string
 				// 1 => transform, n => instancing
 			ResourceContext::ObjectDescriptorContainer_t const shape_descs =
 				_context.GetAllDescsOfType(ResourceContext::ObjectType::kShape);
-			int const instance_count = std::count_if(
+			uint32_t const instance_count = boost::numeric_cast<uint32_t>(std::count_if(
 				shape_descs.cbegin(), shape_descs.cend(),
-				[&path_string](ObjectDescriptor const *_desc) {
+				[&path_string](ResourceContext::ObjectDescriptor const *_desc) {
 					return _desc->param_set.FindString("path", "") == path_string;
-				});
+				}));
 			YS_ASSERT(instance_count != 0u);
 			// switch on instancing policy class
 			// case transform
@@ -346,17 +338,17 @@ MakeTriangleMesh(api::ResourceContext &_context, api::ParamSet const &_params)
 			{
 				using InstancingPolicy = raytracer::InstancingPolicyClass::SharedSource;
 				using LocalTriangleMesh = raytracer::TriangleMesh<InstancingPolicy>;
-				using ResourceContext::ObjectDescriptorContainer_t;
-				ObjectDescriptorContainer_t::const_iterator const odcit = std::find_if(
+				using DescConstIt = ResourceContext::ObjectDescriptorContainer_t::const_iterator;
+				DescConstIt const odcit = std::find_if(
 					shape_descs.cbegin(), shape_descs.cend(),
-					[&path_string, &_context](ObjectDescriptor const *_desc) {
-						std::string const path_param = desc->param_set.FindString("path", "");
+					[&path_string, &_context](ResourceContext::ObjectDescriptor const *_desc) {
+						std::string const path_param = _desc->param_set.FindString("path", "");
 						return (path_param == path_string)
-							&& (_context.HasInstance(desc->unique_id));
+							&& (_context.HasInstance(_desc->unique_id));
 					});
 				if (odcit != shape_descs.cend())
 				{
-					ObjectDescriptor const &desc = **odcit;
+					ResourceContext::ObjectDescriptor const &desc = **odcit;
 					LocalTriangleMesh const &sibling = dynamic_cast<LocalTriangleMesh const &>(
 						_context.GetInstance<raytracer::Shape>(desc.unique_id));
 					result = new (_context.mem_region()) LocalTriangleMesh{ world_transform,
@@ -517,6 +509,5 @@ MakeAreaLight(api::ResourceContext &_context, api::ParamSet const &_params)
 	_context.FlagLightShape(shape);
 	return area_light;
 }
-	
-} // namespace api
 
+} // namespace api
